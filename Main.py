@@ -3,7 +3,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-Nat=64
+Nat=50
 R0=1
 Sphere = structures.Sphere(Nat,1)
-Sphere.ShowWidths()
+Sphere.SaveGeometry()
+Sphere.ShowR0s()
+Sphere.LoadGeometry()
+Sphere.ShowR0s()
+Sphere.SaveGeometry()
+Sphere.ShowStruct()

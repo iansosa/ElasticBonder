@@ -71,7 +71,7 @@ class Sphere():
     def SaveGeometry(self): #saves the geometry to a gen file in angstroms
         print("Saving geometry..")
         angstrom = 0.529177249
-        with open('sphere.gen', 'w') as f:
+        with open('DFTB+/sphere.gen', 'w') as f:
             f.write(str(self.Nat)+' C\n')
             f.write('  C\n')
             f.write('\n')
@@ -84,7 +84,7 @@ class Sphere():
 
         if xyz==False:
             try:
-                file = open("sphere.gen", "r+")
+                file = open("DFTB+/sphere.gen", "r+")
             except OSError:
                 print ("Could not find file: sphere.gen")
                 sys.exit()
@@ -114,7 +114,7 @@ class Sphere():
             self.R0s, self.widths = self.GetR0s(self.R0neighbours)
         else:
             try:
-                file = open("geom.out.xyz", "r+")
+                file = open("DFTB+/geom.out.xyz", "r+")
             except OSError:
                 print ("Could not find file: geom.out.xyz")
                 sys.exit()
@@ -134,6 +134,9 @@ class Sphere():
                 a = list(filter(lambda x: x != '', a))
                 a = list(map(float, a[1:-1]))
                 geometry.append(a)
+
+            arr_t = np.array(geometry).T/angstrom
+            geometry = arr_t.tolist()
 
             self.x = geometry[0]
             self.y = geometry[1]

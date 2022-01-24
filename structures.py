@@ -2,6 +2,10 @@ import numpy as np
 import matplotlib.pyplot as plot
 import sys
 
+from mpl_toolkits.mplot3d.axes3d import Axes3D
+from mpl_toolkits.mplot3d import proj3d
+
+
 class Sphere():
 
     def __init__(self,Nat,R0): #initializes equally distributed points on the surface of a sphere with interatomic distance R0 (Bohr)
@@ -34,7 +38,27 @@ class Sphere():
         return self.x, self.y, self.z
 
     def ShowStruct(self): #displays the 3D structure of the sphere
-        plot.figure().add_subplot(111, projection='3d').scatter(self.x,self.y,self.z);
+
+        fig = plot.figure(figsize=(5,5))
+        ax = fig.gca(projection='3d')
+
+
+        ###scaling
+        x_scale=1
+        y_scale=1
+        z_scale=1.3
+
+        scale=np.diag([x_scale, y_scale, z_scale, 1.0])
+        scale=scale*(1.0/scale.max())
+        scale[3,3]=1.0
+
+        def short_proj():
+          return np.dot(Axes3D.get_proj(ax), scale)
+
+        ax.get_proj=short_proj
+        ###end scaling
+
+        ax.scatter(self.x,self.y,self.z);
         plot.show()
 
     def ShowR0s(self): #displays a list of the R0 estimations for every atom
@@ -47,18 +71,42 @@ class Sphere():
         plot.scatter(x, self.widths,color="black")
         plot.show()
 
+    def ShowDistances(self,idx): #displays a list of the errors in the R0 estimations for every atom
+        dist=self.Distances(idx)
+        dist.sort()
+
+        x = np.linspace(1,self.Nat,self.Nat)
+        plot.scatter(x, dist,color="black")
+        plot.show()
+
     def Distances(self,idx): #returns a list of all the interatomic distances from atom idx
         dist = []
         for i in range(self.Nat):
             dist.append(np.sqrt((self.x[idx]-self.x[i])**2+(self.y[idx]-self.y[i])**2+(self.z[idx]-self.z[i])**2))
         return dist
 
+    def SaveDistances(self): #Saves all the distances (Bohr) for each atom to a file
+        dist = []
+        for i in range(self.Nat):
+            distances = self.Distances(i)
+            distances.sort()
+            dist.append(distances)
+
+        print("Saving distances..")
+        with open('Distances.txt', 'w') as f:
+            for i in range(self.Nat):
+                f.write(str(i)+' ')
+                for k in range(self.Nat):
+                    f.write(str(dist[k][i])+' ')
+                f.write('\n')
+
+
     def GetR0s(self,Nneighbours): #returns a list of R0 estimations and errors from every atom considering Nneighbours closest neighbours
         print("Calculating R0s..")
         R0= []
         width= []
         for i in range(self.Nat):
-            dist=Sphere.Distances(self,i)
+            dist=self.Distances(i)
             dist.sort()
             median = 0
             for k in range(Nneighbours):

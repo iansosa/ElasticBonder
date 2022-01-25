@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plot
 import sys
+import subprocess
 
 from mpl_toolkits.mplot3d.axes3d import Axes3D
 from mpl_toolkits.mplot3d import proj3d
@@ -13,13 +14,14 @@ class Sphere():
         self.R0s = None
         self.R0 = R0 #interatomic distance in bohr
         self.widths = None
-        self.R0neighbours = 3 #number of closest neighbours to calculate the R0 approximation
+        self.R0neighbours = 2 #number of closest neighbours to calculate the R0 approximation
         if self.Nat <= self.R0neighbours:
             self.R0neighbours=self.Nat-1
-        self.SetPos(self.Nat)
+        self.SetPos(self.Nat,self.R0)
 
-    def SetPos(self,Nat): #creates the sphere with N equidistant atoms and interatomic distance R0
+    def SetPos(self,Nat,R0): #creates the sphere with N equidistant atoms and interatomic distance R0
         self.Nat = Nat
+        self.R0 = R0
 
         indices = np.arange(0, Nat, dtype=float) + 0.5
         phi = np.arccos(1 - 2*indices/Nat)
@@ -160,6 +162,7 @@ class Sphere():
             self.y = geometry[1]
             self.z = geometry[2]
             self.R0s, self.widths = self.GetR0s(self.R0neighbours)
+            self.R0 = np.median(self.R0s)
         else:
             try:
                 file = open("DFTB+/geom.out.xyz", "r+")
@@ -190,5 +193,10 @@ class Sphere():
             self.y = geometry[1]
             self.z = geometry[2]
             self.R0s, self.widths = self.GetR0s(self.R0neighbours)
+            self.R0 = np.median(self.R0s)
+
+    def Optimize(self):
+        subprocess.run("./dftbOpt.sh", shell=True)
+
 
 

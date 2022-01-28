@@ -4,27 +4,47 @@ import matplotlib.pyplot as plt
 
 
 
-Nat=22
-R0=2.73
+Nat=64
+R0=2.7
 
-Sphere = structures.Sphere(Nat,R0)
-#Sphere.SaveGeometry()
-#Sphere.Optimize()
-#Sphere.LoadGeometry()
-#Sphere.ShowStruct()
-#Sphere.ShowR0s()
-#Sphere.SaveDistances()
+Chain = structures.Sphere(Nat,R0)
+Chain.LoadGeometry()
+print(Chain.R0)
+Chain.ShowStruct()
 
-#print(Sphere.R0)
-R0vec = []
 
-for i in range(69,101):
-	Sphere.SetPos(i,R0)
-	Sphere.SaveGeometry()
-	Sphere.Optimize()
-	Sphere.LoadGeometry()
-	R0vec.append(Sphere.R0)
+# for i in range(3,101):
+# 	Chain.SetPos(i,R0)
+# 	Chain.SaveGeometry()
+# 	Chain.Optimize()
+# 	Chain.LoadGeometry()
+# 	print("sphere",i,Chain.R0)
+# 	with open('R0_sphere.txt', 'a') as f:
+# 		f.write(str(i)+' '+str(Chain.R0)+'\n')
 
-with open('R0.txt', 'w') as f:
-    for i in range(len(R0vec)):
-        f.write(str(i+69)+' '+str(R0vec[i])+'\n')
+
+# Chain = structures.Ring(Nat,R0)
+
+# for i in range(3,101):
+# 	Chain.SetPos(i,R0)
+# 	Chain.SaveGeometry()
+# 	Chain.Optimize()
+# 	Chain.LoadGeometry()
+# 	print("ring",i,Chain.R0)
+# 	with open('R0_ring.txt', 'a') as f:
+# 		f.write(str(i)+' '+str(Chain.R0)+'\n')
+
+
+# Chain = structures.Chain(Nat,R0)
+
+# for i in range(3,101):
+# 	Chain.SetPos(i,R0)
+# 	Chain.SaveGeometry()
+# 	Chain.Optimize()
+# 	Chain.LoadGeometry()
+# 	print("chain",i,Chain.R0)
+# 	with open('R0_chain.txt', 'a') as f:
+# 		f.write(str(i)+' '+str(Chain.R0)+'\n')
+
+
+

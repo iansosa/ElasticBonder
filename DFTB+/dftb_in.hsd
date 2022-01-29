@@ -1,5 +1,5 @@
 Geometry = GenFormat {
-  <<< "sphere.gen"
+  <<< "geom.gen"
 }
 
 Driver = ConjugateGradient {

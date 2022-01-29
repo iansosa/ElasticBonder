@@ -4,12 +4,12 @@ import matplotlib.pyplot as plt
 
 
 
-Nat=17
-R0=2.7
+Nat=60
+R0=2.72
 
-Sphere = structures.Ring(Nat,R0)
-Sphere.SetPos(Nat,R0)
-print(Sphere.R0)
+Sphere = structures.Sphere(Nat,R0)
+
+Sphere.LoadGeometry("Fullerene-C60.sdf")
 Sphere.ShowStruct()
 Sphere.ShowR0s()
 Sphere.SaveGeometry()
@@ -17,3 +17,4 @@ Sphere.Optimize()
 Sphere.LoadGeometry()
 Sphere.ShowStruct()
 Sphere.ShowR0s()
+

@@ -2,7 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plot
 import sys
 import subprocess
-
+import os.path
+import filetypes
 from mpl_toolkits.mplot3d.axes3d import Axes3D
 from mpl_toolkits.mplot3d import proj3d
 
@@ -86,7 +87,7 @@ class Handler():
             dist.append(distances)
 
         print("Saving distances..")
-        with open('Distances.txt', 'w') as f:
+        with open('out/Distances.txt', 'w') as f:
             for i in range(self.Nat):
                 f.write(str(i)+' ')
                 for k in range(self.Nat):
@@ -111,79 +112,43 @@ class Handler():
     def SaveGeometry(self): #saves the geometry to a gen file in angstroms
         print("Saving geometry..")
         angstrom = 0.529177249
-        with open('DFTB+/sphere.gen', 'w') as f:
+        with open('DFTB+/geom.gen', 'w') as f:
             f.write(str(self.Nat)+' C\n')
             f.write('  C\n')
-            f.write('\n')
             for i in range(self.Nat):
                 f.write('  '+str(i+1)+' 1  '+str(angstrom*self.x[i])+' '+str(angstrom*self.y[i])+' '+str(angstrom*self.z[i])+'\n')
 
-    def LoadGeometry(self,xyz=True): #loads the geometry from a gen or xyz file in angstroms and transforms it into Bohr
+    def LoadGeometry(self,path="geom.out.xyz"): #loads the geometry from a gen, xyz or sdf file in angstroms and converts it into Bohr
         print("Loading geometry..")
         angstrom = 0.529177249
+        extension = path[-3:]
+        recognized = False
 
-        if xyz==False:
-            try:
-                file = open("DFTB+/sphere.gen", "r+")
-            except OSError:
-                print ("Could not find file: sphere.gen")
-                sys.exit()
+        if extension == "sdf":
+            recognized = True
+            self.Nat, geometry = filetypes.Loadsdf("SavedStructures/"+path,angstrom)
+                
+        if extension == "gen":
+            recognized = True
+            self.Nat, geometry = filetypes.Loadgen("DFTB+/"+path,angstrom)
 
-            lines = file.readlines()
+        if extension == "xyz":
+            recognized = True
+            self.Nat, geometry = filetypes.Loadxyz("DFTB+/"+path,angstrom)
 
-            aux = lines[0].split(' ')
-            aux = list(filter(lambda x: x != '', aux))
-            self.Nat = int(aux[0])
-            if self.Nat <= self.R0neighbours:
-                self.R0neighbours=self.Nat-1
-            lines = lines[3:]
+        if recognized == False:
+            print ("Extension not recognized")
+            sys.exit()
 
-            geometry = []
-            for i in range(len(lines)):
-                a = lines[i].split(' ')
-                a = list(filter(lambda x: x != '', a))
-                a = list(map(float, a[2:]))
-                geometry.append(a)
+        if self.Nat <= self.R0neighbours:
+            self.R0neighbours=self.Nat-1
 
-            arr_t = np.array(geometry).T/angstrom
-            geometry = arr_t.tolist()
+        self.x = geometry[0]
+        self.y = geometry[1]
+        self.z = geometry[2]
+        self.R0s, self.widths = self.GetR0s(self.R0neighbours)
+        self.R0 = np.mean(self.R0s)
 
-            self.x = geometry[0]
-            self.y = geometry[1]
-            self.z = geometry[2]
-            self.R0s, self.widths = self.GetR0s(self.R0neighbours)
-            self.R0 = np.mean(self.R0s)
-        else:
-            try:
-                file = open("DFTB+/geom.out.xyz", "r+")
-            except OSError:
-                print ("Could not find file: geom.out.xyz")
-                sys.exit()
-
-            lines = file.readlines()
-
-            aux = lines[0].split(' ')
-            aux = list(filter(lambda x: x != '', aux))
-            self.Nat = int(aux[0])
-            if self.Nat <= self.R0neighbours:
-                self.R0neighbours=self.Nat-1
-            lines = lines[2:]
-
-            geometry = []
-            for i in range(len(lines)):
-                a = lines[i].split(' ')
-                a = list(filter(lambda x: x != '', a))
-                a = list(map(float, a[1:-1]))
-                geometry.append(a)
-
-            arr_t = np.array(geometry).T/angstrom
-            geometry = arr_t.tolist()
-
-            self.x = geometry[0]
-            self.y = geometry[1]
-            self.z = geometry[2]
-            self.R0s, self.widths = self.GetR0s(self.R0neighbours)
-            self.R0 = np.mean(self.R0s)
 
     def Optimize(self):
         subprocess.run("./dftbOpt.sh", shell=True)

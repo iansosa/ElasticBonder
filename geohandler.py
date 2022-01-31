@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plot
 import sys
 import subprocess
+import shutil
 import os.path
 import filetypes
 from mpl_toolkits.mplot3d.axes3d import Axes3D
@@ -109,6 +110,9 @@ class Handler():
             width.append(dist[Nneighbours]-dist[1])
         return R0, width
 
+    def UpdateR0s(self): #returns a list of R0 estimations and errors from every atom considering Nneighbours closest neighbours
+        self.R0s, self.widths = self.GetR0s(self.R0neighbours)
+
     def SaveGeometry(self): #saves the geometry to a gen file in angstroms
         print("Saving geometry..")
         angstrom = 0.529177249
@@ -149,6 +153,51 @@ class Handler():
         self.R0s, self.widths = self.GetR0s(self.R0neighbours)
         self.R0 = np.mean(self.R0s)
 
-
-    def Optimize(self):
+    def RunOptimize(self):
+        shutil.copyfile('DFTB+/optimize.hsd', 'DFTB+/dftb_in.hsd')
         subprocess.run("./dftbOpt.sh", shell=True)
+
+    def RunStatic(self):
+        shutil.copyfile('DFTB+/static_calc.hsd', 'DFTB+/dftb_in.hsd')
+        subprocess.run("./dftbOpt.sh", shell=True)
+
+    def Displace(self,i,dv): #displaces atom i a dv vector distance (Bohr)
+        self.x[i]=self.x[i]+dv[0]
+        self.y[i]=self.y[i]+dv[1]
+        self.z[i]=self.z[i]+dv[2]
+
+    def GetVersor(self,i,j): #returns versor that points from i to j
+        versor = [self.x[j]-self.x[i],self.y[j]-self.y[i],self.z[j]-self.z[i]]
+        norm = np.sqrt((self.x[i]-self.x[j])**2+(self.y[i]-self.y[j])**2+(self.z[i]-self.z[j])**2)
+        return np.array(versor)/norm
+
+    def PullBond(self,i,j,dv=0.001): #pulls atom j away from i a dv distance (Bohr)
+        versor = self.GetVersor(i,j)
+        versor = versor*dv
+
+        self.x[j]=self.x[j]+versor[0]
+        self.y[j]=self.y[j]+versor[1]
+        self.z[j]=self.z[j]+versor[2]
+
+    def GetForces(self):
+        try:
+            file = open("DFTB+/detailed.out", "r+")
+        except OSError:
+            print ("Could not open sdf file")
+            sys.exit()
+
+        lines = file.readlines()
+        forceindex = -1
+        for i in range(len(lines)):
+            if lines[i].find("Total Forces") != -1:
+                forceindex = i
+        lines = lines[forceindex+1:forceindex+self.Nat+1]
+
+        Forces = []
+        for i in range(len(lines)):
+            a = lines[i].split(' ')
+            a = list(filter(lambda x: x != '', a))
+            a = list(map(float, a[1:]))
+            Forces.append(a)
+        return np.array(Forces)
+

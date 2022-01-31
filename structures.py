@@ -53,7 +53,7 @@ class Ring(Handler):
             R0.append(np.sqrt((self.x[i+1]-self.x[i])**2+(self.y[i+1]-self.y[i])**2+(self.z[i+1]-self.z[i])**2))
         R0.append(np.sqrt((self.x[self.Nat-1]-self.x[0])**2+(self.y[self.Nat-1]-self.y[0])**2+(self.z[self.Nat-1]-self.z[0])**2))
         return R0, width
-        
+
 
 class Chain(Handler):
 
@@ -75,7 +75,6 @@ class Chain(Handler):
             for k in range(i):
                 cummulative = cummulative + dx[k]
             self.x.append(cummulative)
-
 
         self.y, self.z =0*indices, 0*indices;
         self.R0s, self.widths = self.GetR0s(self.R0neighbours)

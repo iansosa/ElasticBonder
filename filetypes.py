@@ -15,15 +15,19 @@ def Loadsdf(path,conversion):
     lines = lines[4:]
 
     geometry = []
+    noC = 0
     for i in range(Nat):
         a = lines[i].split(' ')
         a = list(filter(lambda x: x != '', a))
-        a = list(map(float, a[0:3]))
-        geometry.append(a)
+        if a[3] == 'C':
+            a = list(map(float, a[0:3]))
+            geometry.append(a)
+        else:
+            noC = noC + 1
 
     arr_t = np.array(geometry).T/conversion
     geometry = arr_t.tolist()
-
+    Nat = Nat - noC
     return Nat, geometry
 
 def Loadgen(path,conversion):

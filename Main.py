@@ -1,20 +1,26 @@
 import structures
 import numpy as np
 import matplotlib.pyplot as plt
+from bondcalc import Bonds
 
 
+Nat=50
+R0=2.4
 
-Nat=60
-R0=2.72
+Chain = structures.Chain(Nat,R0)
+calculator = Bonds(Chain)
+calculator.CalcSaveBondMatrix()
 
-Sphere = structures.Sphere(Nat,R0)
+# bonds = []
+# for i in range(Nat):
+# 	column = []
+# 	for k in range(Nat):
+# 		column.append(calculator.GetK(k,i))
+# 	bonds.append(column)
 
-Sphere.LoadGeometry("Fullerene-C60.sdf")
-Sphere.ShowStruct()
-Sphere.ShowR0s()
-Sphere.SaveGeometry()
-Sphere.Optimize()
-Sphere.LoadGeometry()
-Sphere.ShowStruct()
-Sphere.ShowR0s()
-
+# with open('out/Forces.txt', 'w') as f:
+# 	for i in range(len(bonds)):
+# 		f.write(str(i))
+# 		for k in range(len(bonds)):
+# 			f.write(' '+str(bonds[i][k]))
+# 		f.write('\n')

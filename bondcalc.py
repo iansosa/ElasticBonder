@@ -93,5 +93,5 @@ class Bonds():
             bonds.append(self.GetK(idx,k))
         with open('out/BondsOverDistance_'+str(idx)+'.txt', 'w') as f:
             for k in range(len(bonds)):
-                f.write(str(k)+' '+str(bonds[k]))
+                f.write(str(k)+' '+str(bonds[k])+'\n')
 

@@ -11,6 +11,9 @@ class Bonds():
             self.structure_eq.SaveGeometry()
             self.structure_eq.RunOptimize()
             self.structure_eq.LoadGeometry()
+        else:
+            self.structure_eq.SaveGeometry()
+            self.structure_eq.RunStatic()
         self.BondMatrix = None
 
     def SaveForces(self,idx,variance=0.5,db=0.02):

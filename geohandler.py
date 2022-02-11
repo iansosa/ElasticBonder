@@ -19,6 +19,9 @@ class Handler():
         if self.Nat <= self.R0neighbours:
             self.R0neighbours=self.Nat-1
         self.SetPos(self.Nat,self.R0)
+        self.Cutoffneighbours = self.R0*1.1 #cutoffdistance for bonded neighbours
+        self.bonds = None
+        self.CalcBondedNeighbours(self.Cutoffneighbours)
 
     def SetPos(self,Nat,R0): #set the position of the geometry
         print ("SetPos Unimplemented")
@@ -63,6 +66,7 @@ class Handler():
     def ShowDistances(self,idx): #displays a list of the errors in the R0 estimations for every atom
         dist=self.Distances(idx)
         dist.sort()
+        print(dist)
 
         x = np.linspace(1,self.Nat,self.Nat)
         plot.scatter(x, dist,color="black")
@@ -78,6 +82,7 @@ class Handler():
         dist = []
         for i in range(self.Nat):
             dist.append(np.sqrt((self.x[idx]-self.x[i])**2+(self.y[idx]-self.y[i])**2+(self.z[idx]-self.z[i])**2))
+
         return dist
 
     def SaveDistances(self): #Saves all the distances (Bohr) for each atom to a file
@@ -112,6 +117,7 @@ class Handler():
 
     def UpdateR0s(self): #returns a list of R0 estimations and errors from every atom considering Nneighbours closest neighbours
         self.R0s, self.widths = self.GetR0s(self.R0neighbours)
+        self.CalcBondedNeighbours(self.R0*1.1)
 
     def SaveGeometry(self): #saves the geometry to a gen file in angstroms
         print("Saving geometry..")
@@ -152,6 +158,7 @@ class Handler():
         self.z = geometry[2]
         self.R0s, self.widths = self.GetR0s(self.R0neighbours)
         self.R0 = np.mean(self.R0s)
+        self.CalcBondedNeighbours(self.R0*1.1)
 
     def RunOptimize(self):
         shutil.copyfile('DFTB+/optimize.hsd', 'DFTB+/dftb_in.hsd')
@@ -179,7 +186,16 @@ class Handler():
         self.y[j]=self.y[j]+versor[1]
         self.z[j]=self.z[j]+versor[2]
 
-    def GetForces(self):
+    def MoveBond(self,i,xyz,dv=0.001): #moves atom i in a given direction
+
+        if xyz=="x":
+            self.x[i]=self.x[i]+dv
+        if xyz=="y":
+            self.y[i]=self.y[i]+dv
+        if xyz=="z":
+            self.z[i]=self.z[i]+dv
+
+    def GetForces(self): #load all of the total forces from DFTB
         try:
             file = open("DFTB+/detailed.out", "r+")
         except OSError:
@@ -200,4 +216,18 @@ class Handler():
             a = list(map(float, a[1:]))
             Forces.append(a)
         return np.array(Forces)
+
+    def CalcBondedNeighbours(self,Cutoffneighbours): #calculates the list of bonds in the whole structure, bonds are defined using Cutoffneighbours
+
+        self.bonds = []
+        for i in range(self.Nat):
+            bondidx = []
+            distances = self.Distances(i)
+            for k in range(self.Nat):
+                if distances[k] <= Cutoffneighbours and k != i:
+                    bondidx.append(k)
+            self.bonds.append(bondidx)
+
+
+                
 

@@ -15,6 +15,9 @@ class Bonds():
             self.structure_eq.SaveGeometry()
             self.structure_eq.RunStatic()
         self.BondMatrix = None
+        self.EqDistanceMatrix = None
+        self.EqPos = None
+        self.EqAngles = None
 
     def SaveForces(self,idx,variance=0.5,db=0.02):
         eqForces = self.structure_eq.GetForces()
@@ -72,22 +75,56 @@ class Bonds():
 
         return (ForceForward-ForceBackwards)/(2*db)
 
-    def CalcSaveBondMatrix(self):
+    def CalcSaveBondMatrix(self,type_calc="restricted"):
         bonds = []
-        for i in range(self.structure_eq.Nat):
-            column = []
-            for k in range(self.structure_eq.Nat):
-                column.append(self.GetK(k,i))
-            bonds.append(column)
+        if type_calc == "all":
+            for i in range(self.structure_eq.Nat):
+                column = []
+                for k in range(self.structure_eq.Nat):
+                    column.append(self.GetK(k,i))
+                bonds.append(column)
+        elif type_calc == "restricted":
+            bonded = self.structure_eq.bonds
+            for i in range(self.structure_eq.Nat):
+                column = []
+                for k in range(self.structure_eq.Nat):
+                    if (k in bonded[i]):
+                        column.append(self.GetK(k,i))
+                    else:
+                        column.append(0)
+                bonds.append(column)
+        else:
+            print ("type_calc is either restricted or all")
+            sys.exit()
         self.BondMatrix = bonds
         self.SaveBondMatrix()
+
+    def CalcSaveDistanceMatrix(self):
+        self.EqDistanceMatrix = []
+        for i in range(self.structure_eq.Nat):
+            distance = []
+            for k in range(self.structure_eq.Nat):
+                distance.append(self.structure_eq.Distance(i,k))
+            self.EqDistanceMatrix.append(distance)
+        with open('out/EqDistances_.txt', 'w') as f:
+            for i in range(self.structure_eq.Nat):
+                for k in range(self.structure_eq.Nat):
+                    f.write(str(self.EqDistanceMatrix[i][k])+' ')
+                f.write('\n')
+
+    def CalcPos(self):
+        x,y,z = self.structure_eq.Pos()
+        self.EqPos = []
+        for i in range(self.structure_eq.Nat):
+            pos = [x[i],y[i],z[i]]
+            self.EqPos.append(np.array(pos))
+
 
     def SaveBondMatrix(self):
         with open('out/Bonds.txt', 'w') as f:
             for i in range(len(self.BondMatrix)):
-                f.write(str(i))
                 for k in range(len(self.BondMatrix)):
-                    f.write(' '+str(self.BondMatrix[i][k]))
+                    f.write(str(self.BondMatrix[i][k])+' ')
                 f.write('\n')
 
     def SaveBondsOverDistance(self,idx):

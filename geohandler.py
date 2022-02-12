@@ -4,9 +4,12 @@ import sys
 import subprocess
 import shutil
 import os.path
+import copy
 import filetypes
+import numpy.linalg as LA
 from mpl_toolkits.mplot3d.axes3d import Axes3D
 from mpl_toolkits.mplot3d import proj3d
+from itertools import permutations 
 
 class Handler():
 
@@ -22,6 +25,7 @@ class Handler():
         self.Cutoffneighbours = self.R0*1.1 #cutoffdistance for bonded neighbours
         self.bonds = None
         self.CalcBondedNeighbours(self.Cutoffneighbours)
+        self.angles = None
 
     def SetPos(self,Nat,R0): #set the position of the geometry
         print ("SetPos Unimplemented")
@@ -84,6 +88,9 @@ class Handler():
             dist.append(np.sqrt((self.x[idx]-self.x[i])**2+(self.y[idx]-self.y[i])**2+(self.z[idx]-self.z[i])**2))
 
         return dist
+
+    def Distance(self,i,j): #returns the distance between atom i and j
+        return np.sqrt((self.x[i]-self.x[j])**2+(self.y[i]-self.y[j])**2+(self.z[i]-self.z[j])**2)
 
     def SaveDistances(self): #Saves all the distances (Bohr) for each atom to a file
         dist = []
@@ -227,6 +234,46 @@ class Handler():
                 if distances[k] <= Cutoffneighbours and k != i:
                     bondidx.append(k)
             self.bonds.append(bondidx)
+
+    def CalcBondAngles(self): #calculates the list of bond angles in the whole structure, bonds are defined using Cutoffneighbours
+        triple = []
+        for i in range(self.Nat):
+            
+            p = permutations(self.bonds[i]) 
+            p = list(p)
+            for k in range(len(p)):
+                if len(p[k]) == 1:
+                    p[k] == None
+                else:
+                    p[k]=list(p[k][:2])
+            for k in range(len(p)):
+                if k>=len(p):
+                    break
+                for j in range(len(p)- 1, -1, -1):
+                    if p[k] or p[j] == None:
+                        break
+                    if p[k][0] == p[j][0] and p[k][1] == p[j][1] and k!= j:
+                        p.pop(j)
+                    if p[k][0] == p[j][1] and p[k][1] == p[j][0] and k!= j:
+                        p.pop(j)
+            print(self.bonds[i],"bonds")
+            print(p,"angles")
+            triple.append(p)
+            print("\n")
+
+
+        for i in range(len(triple)): 
+            print(triple[i])
+            for k in range(len(triple[i])):
+                v1 = self.GetVersor(i,triple[i][k][0])
+                v2 = self.GetVersor(i,triple[i][k][1])
+                inner = np.inner(v1, v2)
+                norms = LA.norm(v1) * LA.norm(v2)
+                cos = inner / norms
+                rad = np.arccos(np.clip(cos, -1.0, 1.0))
+                triple[i][k].append(rad)
+            print(triple[i])
+
 
 
                 

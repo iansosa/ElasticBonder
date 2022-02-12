@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from bondcalc import Bonds
 import time
+import sys
 
 # Nat=5
 # R0=2.455
@@ -108,18 +109,16 @@ def getForces(dy):
 
 
 Nat=10
-R0=2.455
+R0=2.4
 
 Chain = structures.Sphere(Nat,R0)
-Chain.ShowR0s()
-print(Chain.bonds)
 Chain.SaveGeometry()
 Chain.RunOptimize()
 Chain.LoadGeometry()
-Chain.ShowR0s()
-print(Chain.bonds)
+Chain.CalcBondAngles()
 Chain.ShowStruct()
 
+sys.exit("bye")
 
 F0 = Chain.GetForces()[1]
 # F1 = Chain.GetForces()[1]

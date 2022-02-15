@@ -66,7 +66,8 @@ class Chain(Handler):
 
         indices = np.arange(0, self.Nat, dtype=float)
         dx = []
-        dx = R0*(0.98+0.02*((indices-float(self.Nat)/2.0)/(float(self.Nat)/2.0))*((indices-float(self.Nat)/2.0)/(float(self.Nat)/2.0)))
+        #dx = R0*(0.98+0.02*((indices-float(self.Nat)/2.0)/(float(self.Nat)/2.0))*((indices-float(self.Nat)/2.0)/(float(self.Nat)/2.0)))
+        dx = R0*(1+0.*((indices-float(self.Nat)/2.0)/(float(self.Nat)/2.0))*((indices-float(self.Nat)/2.0)/(float(self.Nat)/2.0)))
 
         self.x = []
 

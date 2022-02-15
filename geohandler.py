@@ -10,6 +10,7 @@ import numpy.linalg as LA
 from mpl_toolkits.mplot3d.axes3d import Axes3D
 from mpl_toolkits.mplot3d import proj3d
 from itertools import permutations 
+from scipy.spatial.transform import Rotation as R
 
 class Handler():
 
@@ -25,7 +26,11 @@ class Handler():
         self.Cutoffneighbours = self.R0*1.1 #cutoffdistance for bonded neighbours
         self.bonds = None
         self.CalcBondedNeighbours(self.Cutoffneighbours)
-        self.angles = None
+        self.offplane = None
+        self.angles = None #every angle formed by 3 atoms. angles[i] holds all of the angles related to atom i, None if there are none.  angles[i][k][0],angles[i][k][1] indices of two atoms forming angle k. angles[i][k][2] the angle in radians. angles[i][k][3] a perpendicular vector to angles[i][k][0],angles[i][k][1]
+        self.distances = None
+        self.CalcBondDistances()
+        self.CalcBondAngles()
 
     def SetPos(self,Nat,R0): #set the position of the geometry
         print ("SetPos Unimplemented")
@@ -125,6 +130,8 @@ class Handler():
     def UpdateR0s(self): #returns a list of R0 estimations and errors from every atom considering Nneighbours closest neighbours
         self.R0s, self.widths = self.GetR0s(self.R0neighbours)
         self.CalcBondedNeighbours(self.R0*1.1)
+        self.CalcBondDistances()
+        self.CalcBondAngles()
 
     def SaveGeometry(self): #saves the geometry to a gen file in angstroms
         print("Saving geometry..")
@@ -144,6 +151,7 @@ class Handler():
         if extension == "sdf":
             recognized = True
             self.Nat, geometry = filetypes.Loadsdf("SavedStructures/"+path,angstrom)
+            print(self.Nat)
                 
         if extension == "gen":
             recognized = True
@@ -166,6 +174,8 @@ class Handler():
         self.R0s, self.widths = self.GetR0s(self.R0neighbours)
         self.R0 = np.mean(self.R0s)
         self.CalcBondedNeighbours(self.R0*1.1)
+        self.CalcBondDistances()
+        self.CalcBondAngles()
 
     def RunOptimize(self):
         shutil.copyfile('DFTB+/optimize.hsd', 'DFTB+/dftb_in.hsd')
@@ -185,6 +195,10 @@ class Handler():
         norm = np.sqrt((self.x[i]-self.x[j])**2+(self.y[i]-self.y[j])**2+(self.z[i]-self.z[j])**2)
         return np.array(versor)/norm
 
+    def GetVector(self,i,j): #returns vector that points from i to j
+        versor = [self.x[j]-self.x[i],self.y[j]-self.y[i],self.z[j]-self.z[i]]
+        return np.array(versor)
+
     def PullBond(self,i,j,dv=0.001): #pulls atom j away from i a dv distance (Bohr)
         versor = self.GetVersor(i,j)
         versor = versor*dv
@@ -192,6 +206,28 @@ class Handler():
         self.x[j]=self.x[j]+versor[0]
         self.y[j]=self.y[j]+versor[1]
         self.z[j]=self.z[j]+versor[2]
+
+    def RotateBond(self,i,j,k,rotvec,da=0.01): #rotates atom k towards j an angle da pivoting on i
+
+        inner = np.inner(self.GetVector(i,k),self.GetVector(i,j)) / (LA.norm(self.GetVector(i,k))* LA.norm(self.GetVector(i,j)))
+        rad_in = np.arccos(np.clip(inner, -1.0, 1.0))
+
+        rotation_vector = da * rotvec
+        rotation = R.from_rotvec(rotation_vector)
+        v1 = rotation.apply(self.GetVector(i,k))
+
+        inner = np.inner(v1,self.GetVector(i,j)) / (LA.norm(v1)* LA.norm(self.GetVector(i,j)))
+        rad_out = np.arccos(np.clip(inner, -1.0, 1.0))
+
+        if rad_out > rad_in:
+            rotation_vector = -da * rotvec
+            rotation = R.from_rotvec(rotation_vector)
+            v1 = rotation.apply(self.GetVector(i,k))
+
+        v1 = v1 + np.array([self.x[i],self.y[i],self.z[i]])
+        self.x[k] = v1[0]
+        self.y[k] = v1[1]
+        self.z[k] = v1[2]
 
     def MoveBond(self,i,xyz,dv=0.001): #moves atom i in a given direction
 
@@ -201,6 +237,13 @@ class Handler():
             self.y[i]=self.y[i]+dv
         if xyz=="z":
             self.z[i]=self.z[i]+dv
+
+    def SetDisplacements(self,dm): #moves all atoms using a displacement matrix
+
+        for i in range(self.Nat):
+            self.x[i]=self.x[i]+dm[i][0]
+            self.y[i]=self.y[i]+dm[i][1]
+            self.z[i]=self.z[i]+dm[i][2]
 
     def GetForces(self): #load all of the total forces from DFTB
         try:
@@ -224,6 +267,26 @@ class Handler():
             Forces.append(a)
         return np.array(Forces)
 
+    def GetEnergy(self): #load the total energy from DFTB
+        try:
+            file = open("DFTB+/detailed.out", "r+")
+        except OSError:
+            print ("Could not open sdf file")
+            sys.exit()
+
+        lines = file.readlines()
+        forceindex = -1
+        for i in range(len(lines)):
+            if lines[i].find("Total energy:") != -1:
+                forceindex = i
+        lines = lines[forceindex]
+
+        a = lines.split(' ')
+        a = list(filter(lambda x: x != '', a))
+        a = a[2]
+        return float(a)
+        
+
     def CalcBondedNeighbours(self,Cutoffneighbours): #calculates the list of bonds in the whole structure, bonds are defined using Cutoffneighbours
 
         self.bonds = []
@@ -236,44 +299,76 @@ class Handler():
             self.bonds.append(bondidx)
 
     def CalcBondAngles(self): #calculates the list of bond angles in the whole structure, bonds are defined using Cutoffneighbours
-        triple = []
+        self.angles = []
         for i in range(self.Nat):
             
             p = permutations(self.bonds[i]) 
             p = list(p)
-            for k in range(len(p)):
-                if len(p[k]) == 1:
-                    p[k] == None
-                else:
+            if len(p) == 1:
+                p = None
+            else:  
+                for k in range(len(p)):
                     p[k]=list(p[k][:2])
-            for k in range(len(p)):
-                if k>=len(p):
-                    break
-                for j in range(len(p)- 1, -1, -1):
-                    if p[k] or p[j] == None:
+                for k in range(len(p)):
+                    if k>=len(p):
                         break
-                    if p[k][0] == p[j][0] and p[k][1] == p[j][1] and k!= j:
-                        p.pop(j)
-                    if p[k][0] == p[j][1] and p[k][1] == p[j][0] and k!= j:
-                        p.pop(j)
-            print(self.bonds[i],"bonds")
-            print(p,"angles")
-            triple.append(p)
-            print("\n")
+                    for j in range(len(p)- 1, -1, -1):
+                        if p[k][0] == p[j][0] and p[k][1] == p[j][1] and k!= j:
+                            p.pop(j)
+                        if p[k][0] == p[j][1] and p[k][1] == p[j][0] and k!= j:
+                            p.pop(j)
+            self.angles.append(p)
+
+        for i in range(len(self.angles)): 
+            if self.angles[i] != None:
+                for k in range(len(self.angles[i])):
+                    v1 = self.GetVersor(i,self.angles[i][k][0])
+                    v2 = self.GetVersor(i,self.angles[i][k][1])
+                    inner = np.inner(v1,v2)
+                    rad = np.arccos(np.clip(inner, -1.0, 1.0))
+                    self.angles[i][k].append(rad)
+                    cross = np.cross(v1,v2)
+                    if rad <= 3.14159265359 and rad > 3.14159265358:
+                        inner = np.inner(v1,v2+np.array([0,0,0.001]))
+                        rad = np.arccos(np.clip(inner, -1.0, 1.0))
+                        cross = np.cross(v1,v2+np.array([0,0,0.001]))
+                        if rad <= rad <= 3.14159265359 and rad > 3.14159265358:
+                            inner = np.inner(v1,v2+np.array([0,0.001,0]))
+                            rad = np.arccos(np.clip(inner, -1.0, 1.0))
+                            cross = np.cross(v1,v2+np.array([0,0.001,0]))
+
+                    cross = cross/LA.norm(cross)
+                    self.angles[i][k].append(cross)
 
 
-        for i in range(len(triple)): 
-            print(triple[i])
-            for k in range(len(triple[i])):
-                v1 = self.GetVersor(i,triple[i][k][0])
-                v2 = self.GetVersor(i,triple[i][k][1])
-                inner = np.inner(v1, v2)
-                norms = LA.norm(v1) * LA.norm(v2)
-                cos = inner / norms
-                rad = np.arccos(np.clip(cos, -1.0, 1.0))
-                triple[i][k].append(rad)
-            print(triple[i])
+    def CalcBondOffPlane(self): #calculates the list of offplane angles in the whole structure, bonds are defined using Cutoffneighbours
+        self.offplane = []
+        for i in range(self.Nat):
 
+            if len(self.bonds[i]>2):
+                self.offplane.append(self.bonds[i][:3])
+            elif:
+                self.offplane.append(None)
+
+        for i in range(len(self.offplane)): 
+            if self.offplane[i] != None:
+                v1 = self.GetVersor(self.offplane[i][0],self.offplane[i][1])
+                v2 = self.GetVersor(self.offplane[i][0],self.offplane[i][2])
+                cross = np.cross(v1,v2)
+                cross = cross/LA.norm(cross)
+                v = self.GetVector(i,self.offplane[i][1])
+                distance = LA.norm(v)
+                inner = np.inner(v,cross)
+                self.offplane[i].append(np.arcsin(inner/distance))
+
+
+    def CalcBondDistances(self): #calculates the list of bond angles in the whole structure, bonds are defined using Cutoffneighbours
+        self.distances = []
+        for i in range(self.Nat):
+            row = []
+            for j in range(self.Nat):
+                row.append(self.Distance(i,j))
+            self.distances.append(row)
 
 
                 

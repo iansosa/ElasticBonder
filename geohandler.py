@@ -31,6 +31,7 @@ class Handler():
         self.distances = None
         self.CalcBondDistances()
         self.CalcBondAngles()
+        self.CalcBondOffPlane()
 
     def SetPos(self,Nat,R0): #set the position of the geometry
         print ("SetPos Unimplemented")
@@ -132,6 +133,7 @@ class Handler():
         self.CalcBondedNeighbours(self.R0*1.1)
         self.CalcBondDistances()
         self.CalcBondAngles()
+        self.CalcBondOffPlane()
 
     def SaveGeometry(self): #saves the geometry to a gen file in angstroms
         print("Saving geometry..")
@@ -176,6 +178,7 @@ class Handler():
         self.CalcBondedNeighbours(self.R0*1.1)
         self.CalcBondDistances()
         self.CalcBondAngles()
+        self.CalcBondOffPlane()
 
     def RunOptimize(self):
         shutil.copyfile('DFTB+/optimize.hsd', 'DFTB+/dftb_in.hsd')
@@ -345,9 +348,9 @@ class Handler():
         self.offplane = []
         for i in range(self.Nat):
 
-            if len(self.bonds[i]>2):
+            if len(self.bonds[i])>2:
                 self.offplane.append(self.bonds[i][:3])
-            elif:
+            else:
                 self.offplane.append(None)
 
         for i in range(len(self.offplane)): 

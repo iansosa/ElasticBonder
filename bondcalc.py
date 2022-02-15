@@ -119,11 +119,9 @@ class Bonds():
         structure.RunStatic()
         newForces = structure.GetForces()
 
-        print("k1",versor)
-        print(newForces[j]-eqForces[j])
+
         K1 = - (np.inner(newForces[j],versor)-np.inner(eqForces[j],versor))*structure.Distance(i,j)/(inner-inner_in)
-        print(structure.y[j],structure.y[k])
-        print(K1)
+
 
         ###################################################################
         structure = copy.deepcopy(self.structure_eq)
@@ -139,12 +137,8 @@ class Bonds():
         structure.RunStatic()
         newForces = structure.GetForces()
 
-        print("k2",versor)
-        print(newForces[k]-eqForces[k])
         K2 = - (np.inner(newForces[k],versor)-np.inner(eqForces[k],versor))*structure.Distance(i,k)/(inner-inner_in)
-        print(structure.y[j],structure.y[k])
 
-        print(K1,K2)
         return (K1+K2)/2
         ###################################################################
         # structure = copy.deepcopy(self.structure_eq)
@@ -181,6 +175,7 @@ class Bonds():
         structure.RunStatic()
         structure.CalcBondDistances()
         structure.CalcBondAngles()
+        structure.CalcBondOffPlane()
 
         bonds_eq = []
         alreadyconsidered = []
@@ -195,6 +190,11 @@ class Bonds():
                 for j in range(len(self.structure_eq.angles[i])):
                     angles_eq.append(self.structure_eq.angles[i][j][2])
 
+        offplane_eq = []
+        for i in range(len(self.structure_eq.offplane)):
+            if self.structure_eq.offplane[i] != None: 
+                    offplane_eq.append(self.structure_eq.offplane[i][3])
+
         bonds = []
         alreadyconsidered = []
         for i in range(len(structure.bonds)):
@@ -208,13 +208,21 @@ class Bonds():
                 for j in range(len(structure.angles[i])):
                     angles.append(structure.angles[i][j][2])
 
+        offplane = []
+        for i in range(len(structure.offplane)):
+            if structure.offplane[i] != None: 
+                    offplane.append(structure.offplane[i][3])
+
         for i in range(len(bonds)):
             bonds[i] = bonds[i] - bonds_eq[i]
 
         for i in range(len(angles)):
             angles[i] = np.cos(angles[i]) - np.cos(angles_eq[i])
 
-        return structure.GetEnergy() - H0, bonds , angles
+        for i in range(len(offplane)):
+            offplane[i] = offplane[i] - offplane_eq[i]
+
+        return structure.GetEnergy() - H0, bonds , angles , offplane
 
     def FitEnergy(self,iters=100,type_opt="two"):
 
@@ -226,19 +234,25 @@ class Bonds():
         x_in = []
         distances = []
         angles = []
+        offplane = []
         for i in range(iters):
             results = self.CalcSaveEnergyPerturbation(H0)
             H.append(results[0])
             distances.append(results[1])
             angles.append(results[2])
-            x_in.append(results[1]+results[2]) 
+            offplane.append(results[3])
+            x_in.append(results[1]+results[2]+results[3]) 
         Nbonds = len(distances[0])
         Nangs = len(angles[0])
-        numparams = Nbonds + Nangs
+        Noffplane = len(offplane[0])
+        numparams = Nbonds + Nangs + Noffplane
         x_in = np.array(x_in).T
         if type_opt == "two":
             Energy = partial(utils.EbondsTwo,Nbonds,Nangs)
             pars, cov = curve_fit(f=Energy, xdata=x_in, ydata=H,p0=[0.6,0.3])
+        if type_opt == "three":
+            Energy = partial(utils.EbondsThree,Nbonds,Nangs,Noffplane)
+            pars, cov = curve_fit(f=Energy, xdata=x_in, ydata=H,p0=[0.6,0.3,0.3])
         elif type_opt == "all":
             Energy = partial(utils.Ebonds,Nbonds,Nangs)
             pars, cov = curve_fit(f=Energy, xdata=x_in, ydata=H,p0=[0]*numparams)

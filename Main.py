@@ -15,4 +15,4 @@ R0=2.4
 Chain = structures.Sphere(Nat,R0)
 Chain.LoadGeometry("Graphene-C92.sdf")
 Bonder = Bonds(Chain,True)
-Bonder.FitEnergy(1000)
+Bonder.FitEnergy(1000,"three")

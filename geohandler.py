@@ -33,6 +33,20 @@ class Handler():
         self.CalcBondAngles()
         self.CalcBondOffPlane()
 
+    def add(self,structure):
+        self.Nat = self.Nat+structure.Nat
+        # self.x = self.x.tolist()
+        # self.y = self.y.tolist()
+        # self.z = self.z.tolist()
+        for i in range(structure.Nat):
+            self.x.append(structure.x[i])
+            self.y.append(structure.y[i])
+            self.z.append(structure.z[i])
+        self.CalcBondedNeighbours(self.Cutoffneighbours)
+        self.CalcBondDistances()
+        self.CalcBondAngles()
+        self.CalcBondOffPlane()
+
     def SetPos(self,Nat,R0): #set the position of the geometry
         print ("SetPos Unimplemented")
         sys.exit()
@@ -152,12 +166,18 @@ class Handler():
 
         if extension == "sdf":
             recognized = True
+            if path=="Graphene-C92.sdf":
+                angstrom = angstrom * 0.71121438
             self.Nat, geometry = filetypes.Loadsdf("SavedStructures/"+path,angstrom)
-            print(self.Nat)
+            print(str(self.Nat)+" atoms loaded")
                 
         if extension == "gen":
             recognized = True
-            self.Nat, geometry = filetypes.Loadgen("DFTB+/"+path,angstrom)
+            if path != "geom.out.xyz":
+                self.Nat, geometry = filetypes.Loadgen("SavedStructures/"+path,angstrom)
+                print(str(self.Nat)+" atoms loaded")
+            else:
+                self.Nat, geometry = filetypes.Loadgen("DFTB+/"+path,angstrom)
 
         if extension == "xyz":
             recognized = True
@@ -241,6 +261,13 @@ class Handler():
         if xyz=="z":
             self.z[i]=self.z[i]+dv
 
+    def MoveAll(self,dv): #moves all atoms in a given direction
+
+        for i in range(self.Nat):
+            self.x[i] = self.x[i] + dv[0]
+            self.y[i] = self.y[i] + dv[1]
+            self.z[i] = self.z[i] + dv[2]
+
     def SetDisplacements(self,dm): #moves all atoms using a displacement matrix
 
         for i in range(self.Nat):
@@ -252,7 +279,7 @@ class Handler():
         try:
             file = open("DFTB+/detailed.out", "r+")
         except OSError:
-            print ("Could not open sdf file")
+            print ("Could not open detailed.out file")
             sys.exit()
 
         lines = file.readlines()
@@ -274,7 +301,7 @@ class Handler():
         try:
             file = open("DFTB+/detailed.out", "r+")
         except OSError:
-            print ("Could not open sdf file")
+            print ("Could not open detailed.out file")
             sys.exit()
 
         lines = file.readlines()
@@ -304,7 +331,6 @@ class Handler():
     def CalcBondAngles(self): #calculates the list of bond angles in the whole structure, bonds are defined using Cutoffneighbours
         self.angles = []
         for i in range(self.Nat):
-            
             p = permutations(self.bonds[i]) 
             p = list(p)
             if len(p) == 1:
@@ -318,6 +344,7 @@ class Handler():
                     for j in range(len(p)- 1, -1, -1):
                         if p[k][0] == p[j][0] and p[k][1] == p[j][1] and k!= j:
                             p.pop(j)
+                    for j in range(len(p)- 1, -1, -1):
                         if p[k][0] == p[j][1] and p[k][1] == p[j][0] and k!= j:
                             p.pop(j)
             self.angles.append(p)
@@ -355,14 +382,20 @@ class Handler():
 
         for i in range(len(self.offplane)): 
             if self.offplane[i] != None:
-                v1 = self.GetVersor(self.offplane[i][0],self.offplane[i][1])
-                v2 = self.GetVersor(self.offplane[i][0],self.offplane[i][2])
-                cross = np.cross(v1,v2)
-                cross = cross/LA.norm(cross)
-                v = self.GetVector(i,self.offplane[i][1])
-                distance = LA.norm(v)
-                inner = np.inner(v,cross)
-                self.offplane[i].append(np.arcsin(inner/distance))
+                v1 = self.GetVersor(i,self.offplane[i][0])
+                v2 = self.GetVersor(i,self.offplane[i][1])
+                v3 = self.GetVersor(i,self.offplane[i][2])
+                v = np.cross(v1,v2) + np.cross(v2,v3) + np.cross(v3,v1)
+                h = np.inner(v/LA.norm(v), v1)
+                self.offplane[i].append(np.arcsin(h))
+                # v1 = self.GetVersor(self.offplane[i][0],self.offplane[i][1])
+                # v2 = self.GetVersor(self.offplane[i][0],self.offplane[i][2])
+                # cross = np.cross(v1,v2)
+                # cross = cross/LA.norm(cross)
+                # v = self.GetVector(i,self.offplane[i][1])
+                # distance = LA.norm(v)
+                # inner = np.inner(v,cross)
+                # self.offplane[i].append(np.arcsin(inner/distance))
 
 
     def CalcBondDistances(self): #calculates the list of bond angles in the whole structure, bonds are defined using Cutoffneighbours

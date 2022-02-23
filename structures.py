@@ -21,6 +21,9 @@ class Sphere(Handler):
         self.x = self.x/norm
         self.y = self.y/norm
         self.z = self.z/norm
+        self.x = self.x.tolist()
+        self.y = self.y.tolist()
+        self.z = self.z.tolist()
         self.R0s = self.R0s/norm
         self.widths = self.widths/norm
 
@@ -43,6 +46,9 @@ class Ring(Handler):
         distance = np.sqrt(2-2*np.cos(Dtheta))
         Radius = self.R0/distance
         self.x, self.y, self.z = Radius*np.cos(indices*Dtheta) ,Radius*np.sin(indices*Dtheta), indices*0;
+        self.x = self.x.tolist()
+        self.y = self.y.tolist()
+        self.z = self.z.tolist()
         self.R0s, self.widths = self.GetR0s(self.R0neighbours)
 
     def GetR0s(self,Nneighbours): #returns a list of R0 estimations and errors from every atom considering Nneighbours closest neighbours
@@ -65,19 +71,38 @@ class Chain(Handler):
         self.R0 = R0
 
         indices = np.arange(0, self.Nat, dtype=float)
+        # dx = []
+        # dx = R0*(1+0.*((indices-float(self.Nat)/2.0)/(float(self.Nat)/2.0))*((indices-float(self.Nat)/2.0)/(float(self.Nat)/2.0)))
+        # self.x = []
+
+        # for i in range(len(dx)):
+        #     cummulative = 0
+        #     for k in range(i):
+        #         cummulative = cummulative + dx[k]
+        #     self.x.append(cummulative)
+
+
         dx = []
-        #dx = R0*(0.98+0.02*((indices-float(self.Nat)/2.0)/(float(self.Nat)/2.0))*((indices-float(self.Nat)/2.0)/(float(self.Nat)/2.0)))
-        dx = R0*(1+0.*((indices-float(self.Nat)/2.0)/(float(self.Nat)/2.0))*((indices-float(self.Nat)/2.0)/(float(self.Nat)/2.0)))
-
+        dz = []
         self.x = []
+        self.x.append(0)
+        self.x.append(R0)
+        self.z = []
+        self.z.append(0)
+        self.z.append(0)
 
-        for i in range(len(dx)):
-            cummulative = 0
+        for i in range(2,self.Nat):
+            cummulativex = R0-0.92387*R0
+            cummulativez = -0.38268*R0
             for k in range(i):
-                cummulative = cummulative + dx[k]
-            self.x.append(cummulative)
+                cummulativex = cummulativex + 0.92387*R0
+                cummulativez = cummulativez + 0.38268*R0
+            self.x.append(cummulativex)
+            self.z.append(cummulativez)
 
-        self.y, self.z =0*indices, 0*indices;
+
+        self.y =0*indices;
+        self.y = self.y.tolist()
         self.R0s, self.widths = self.GetR0s(self.R0neighbours)
 
     def GetR0s(self,Nneighbours): #returns a list of R0 estimations and errors from every atom considering Nneighbours closest neighbours

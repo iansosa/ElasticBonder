@@ -236,6 +236,7 @@ class Bonds():
         angles = []
         offplane = []
         for i in range(iters):
+            print(str(i)+"/"+str(iters))
             results = self.CalcSaveEnergyPerturbation(H0)
             H.append(results[0])
             distances.append(results[1])

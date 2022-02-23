@@ -26,6 +26,7 @@ Hamiltonian = DFTB {
     Temperature[kelvin] = 200.0000000000000000
   }
   SCCTolerance = 1.0000000000000001E-007
+
 }
 
 Options {}

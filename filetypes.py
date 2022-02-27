@@ -55,7 +55,7 @@ def Loadgen(path,conversion):
 
     return Nat, geometry
 
-def Loadxyz(path,conversion):
+def Loadxyz_single(path,conversion):
     try:
         file = open(path, "r+")
     except OSError:
@@ -79,3 +79,31 @@ def Loadxyz(path,conversion):
     geometry = arr_t.tolist()
 
     return Nat, geometry
+
+def Loadxyz(path,conversion): #dftb+ specifies velocities in A/ps, velocities are returned in bohr/a.u(time)
+    femtosecond = 41.341374575751
+    try:
+        file = open(path, "r+")
+    except OSError:
+        print ("Could not open xyz file")
+        sys.exit()
+    lines = file.readlines()
+
+    aux = lines[0].split(' ')
+    aux = list(filter(lambda x: x != '', aux))
+    Nat = int(aux[0])
+    Niter = int(len(lines)/(2+Nat))
+    print(Niter)
+
+    evolution = []
+    for i in range(Niter):
+        instant = []
+        for j in range(Nat):
+            a = lines[2+j+i*(2+Nat)].split(' ')
+            a = list(filter(lambda x: x != '', a))
+            a = list(map(float, a[1:8]))
+            a = [a[0]/conversion,a[1]/conversion,a[2]/conversion,a[4]/(femtosecond*conversion*1000),a[5]/(femtosecond*conversion*1000),a[6]/(femtosecond*conversion*1000)]
+            instant.append(a)
+        evolution.append(instant)
+        
+    return Nat, Niter, evolution

@@ -71,37 +71,37 @@ class Chain(Handler):
         self.R0 = R0
 
         indices = np.arange(0, self.Nat, dtype=float)
-        # dx = []
-        # dx = R0*(1+0.*((indices-float(self.Nat)/2.0)/(float(self.Nat)/2.0))*((indices-float(self.Nat)/2.0)/(float(self.Nat)/2.0)))
-        # self.x = []
-
-        # for i in range(len(dx)):
-        #     cummulative = 0
-        #     for k in range(i):
-        #         cummulative = cummulative + dx[k]
-        #     self.x.append(cummulative)
-
-
         dx = []
-        dz = []
+        dx = R0*(1+0.*((indices-float(self.Nat)/2.0)/(float(self.Nat)/2.0))*((indices-float(self.Nat)/2.0)/(float(self.Nat)/2.0)))
         self.x = []
-        self.x.append(0)
-        self.x.append(R0)
-        self.z = []
-        self.z.append(0)
-        self.z.append(0)
 
-        for i in range(2,self.Nat):
-            cummulativex = R0-0.92387*R0
-            cummulativez = -0.38268*R0
+        for i in range(len(dx)):
+            cummulative = 0
             for k in range(i):
-                cummulativex = cummulativex + 0.92387*R0
-                cummulativez = cummulativez + 0.38268*R0
-            self.x.append(cummulativex)
-            self.z.append(cummulativez)
+                cummulative = cummulative + dx[k]
+            self.x.append(cummulative)
 
 
-        self.y =0*indices;
+        # dx = []
+        # dz = []
+        # self.x = []
+        # self.x.append(0)
+        # self.x.append(R0)
+        # self.z = []
+        # self.z.append(0)
+        # self.z.append(0)
+
+        # for i in range(2,self.Nat):
+        #     cummulativex = R0-0.92387*R0
+        #     cummulativez = -0.38268*R0
+        #     for k in range(i):
+        #         cummulativex = cummulativex + 0.92387*R0
+        #         cummulativez = cummulativez + 0.38268*R0
+        #     self.x.append(cummulativex)
+        #     self.z.append(cummulativez)
+
+
+        self.y, self.z =0*indices, 0*indices;
         self.y = self.y.tolist()
         self.R0s, self.widths = self.GetR0s(self.R0neighbours)
 

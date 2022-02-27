@@ -173,7 +173,7 @@ class Handler():
                 
         if extension == "gen":
             recognized = True
-            if path != "geom.out.xyz":
+            if path != "geom.out.gen":
                 self.Nat, geometry = filetypes.Loadgen("SavedStructures/"+path,angstrom)
                 print(str(self.Nat)+" atoms loaded")
             else:
@@ -181,7 +181,7 @@ class Handler():
 
         if extension == "xyz":
             recognized = True
-            self.Nat, geometry = filetypes.Loadxyz("DFTB+/"+path,angstrom)
+            self.Nat, geometry = filetypes.Loadxyz_single("DFTB+/"+path,angstrom)
 
         if recognized == False:
             print ("Extension not recognized")

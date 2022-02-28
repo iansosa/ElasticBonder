@@ -204,8 +204,16 @@ class Handler():
         shutil.copyfile('DFTB+/optimize.hsd', 'DFTB+/dftb_in.hsd')
         subprocess.run("./dftbOpt.sh", shell=True)
 
-    def RunStatic(self):
-        shutil.copyfile('DFTB+/static_calc.hsd', 'DFTB+/dftb_in.hsd')
+    def RunStatic(self,vdw=None):
+        if vdw == None:
+            shutil.copyfile('DFTB+/static_calc.hsd', 'DFTB+/dftb_in.hsd')
+        elif vdw == "MBD":
+            shutil.copyfile('DFTB+/static_calc_mbd.hsd', 'DFTB+/dftb_in.hsd')
+        elif vdw == "PW":
+            shutil.copyfile('DFTB+/static_calc_pw.hsd', 'DFTB+/dftb_in.hsd')
+        else:
+            print ("Dispersion type not recognized")
+            sys.exit()
         subprocess.run("./dftbOpt.sh", shell=True)
 
     def Displace(self,i,dv): #displaces atom i a dv vector distance (Bohr)

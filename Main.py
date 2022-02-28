@@ -13,40 +13,42 @@ from functools import partial
 Nat=10
 R0=2.4
 
+# Chain1 = structures.Chain(Nat,R0)
+# Chain1.SaveGeometry()
+# Chain1.RunOptimize()
+# Chain1.LoadGeometry()
 
-# Sphere = structures.Ring(Nat,R0)
-# Sphere.LoadGeometry("Ring_C10.gen")
+# Chain2 = structures.Chain(Nat,R0)
+# Chain2.SaveGeometry()
+# Chain2.RunOptimize()
+# Chain2.LoadGeometry()
+
+# Chain2.MoveAll([0,0,30])
+
+# Chain1.add(Chain2)
+
+# Chain1.SaveGeometry()
+# Chain1.RunStatic()
+
+# F = Chain1.GetForces()
+# F_lower = 0
+# for k in range(10):
+#     F_lower = F_lower + F[k][2]
+# F_upper = 0
+
+# for k in range(10,20):
+#     print(k)
+#     F_upper = F_upper + F[k][2]
+# print(F_upper,F_lower)
 
 
-Chain = structures.Chain(Nat,R0)
+for i in range(10):
+	utils.StaticOverEvolve(i*30+50)
 
-md = MDH(Chain,False)
-# md.RunMD(100,300)
-md.LoadEvolution()
 
-total_F = 0
-for i in range(Nat):
-	total_F = total_F + md.forcespmass[50][i][1]
-print(total_F)
 
-# stats = []
-# for i in range(1):
-# 	md = MDH(Chain,False)
-# 	md.RunMD(10,i*10+30)
-# 	md.LoadForces()
-# 	averages, dispersions, averager = md.ComputeTempDispersions()
-# 	r = 0
-# 	d = 0
-# 	for j in range(len(dispersions)):
-# 		r = r + averager[j]
-# 		d = d + dispersions[j]
-# 	r = r/len(averager)
-# 	d = d/len(dispersions)
-# 	stats.append([r,d])
-# 	print("r",r)
-# 	print("i",i)
-# 	print("d",d)
+# Chain = structures.Chain(Nat,R0)
 
-# with open('out/TempStats_both.txt', 'w') as f:
-#     for i in range(len(stats)):
-#         f.write(str(i*10+30)+' '+str(stats[i][0])+' '+str(stats[i][1])+'\n')
+# md = MDH(Chain,False)
+# md.RunMD(100,300,[0,9])
+# md.LoadEvolution()

@@ -55,6 +55,31 @@ def Loadgen(path,conversion):
 
     return Nat, geometry
 
+def Loadcc1(path,conversion):
+    try:
+        file = open(path, "r+")
+    except OSError:
+        print ("Could not open cc1 file")
+        sys.exit()
+    lines = file.readlines()
+
+    aux = lines[0].split(' ')
+    aux = list(filter(lambda x: x != '', aux))
+    Nat = int(aux[0])
+    lines = lines[1:]
+
+    geometry = []
+    for i in range(len(lines)):
+        a = lines[i].split(' ')
+        a = list(filter(lambda x: x != '', a))
+        a = list(map(float, a[2:5]))
+        geometry.append(a)
+
+    arr_t = np.array(geometry).T/conversion
+    geometry = arr_t.tolist()
+
+    return Nat, geometry
+
 def Loadxyz_single(path,conversion):
     try:
         file = open(path, "r+")

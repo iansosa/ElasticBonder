@@ -144,6 +144,7 @@ class Handler():
 
     def UpdateR0s(self): #returns a list of R0 estimations and errors from every atom considering Nneighbours closest neighbours
         self.R0s, self.widths = self.GetR0s(self.R0neighbours)
+        self.R0 = np.mean(self.R0s)
         self.CalcBondedNeighbours(self.R0*1.1)
         self.CalcBondDistances()
         self.CalcBondAngles()
@@ -183,6 +184,10 @@ class Handler():
             recognized = True
             self.Nat, geometry = filetypes.Loadxyz_single("DFTB+/"+path,angstrom)
 
+        if extension == "cc1":
+            recognized = True
+            self.Nat, geometry = filetypes.Loadcc1("SavedStructures/"+path,angstrom)
+
         if recognized == False:
             print ("Extension not recognized")
             sys.exit()
@@ -211,6 +216,18 @@ class Handler():
             shutil.copyfile('DFTB+/static_calc_mbd.hsd', 'DFTB+/dftb_in.hsd')
         elif vdw == "PW":
             shutil.copyfile('DFTB+/static_calc_pw.hsd', 'DFTB+/dftb_in.hsd')
+        else:
+            print ("Dispersion type not recognized")
+            sys.exit()
+        subprocess.run("./dftbOpt.sh", shell=True)
+
+    def RunHessian(self,vdw=None):
+        if vdw == None:
+            shutil.copyfile('DFTB+/Hessian_calc.hsd', 'DFTB+/dftb_in.hsd')
+        elif vdw == "MBD":
+            shutil.copyfile('DFTB+/Hessian_calc_mbd.hsd', 'DFTB+/dftb_in.hsd')
+        elif vdw == "PW":
+            shutil.copyfile('DFTB+/Hessian_calc_pw.hsd', 'DFTB+/dftb_in.hsd')
         else:
             print ("Dispersion type not recognized")
             sys.exit()

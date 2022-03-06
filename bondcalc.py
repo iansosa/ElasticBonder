@@ -249,13 +249,13 @@ class Bonds():
         numparams = Nbonds + Nangs + Noffplane
         x_in = np.array(x_in).T
         if type_opt == "two":
-            Energy = partial(utils.EbondsTwo,Nbonds,Nangs)
+            Energy = partial(functions.EbondsTwo,Nbonds,Nangs)
             pars, cov = curve_fit(f=Energy, xdata=x_in, ydata=H,p0=[0.6,0.3])
         if type_opt == "three":
-            Energy = partial(utils.EbondsThree,Nbonds,Nangs,Noffplane)
+            Energy = partial(functions.EbondsThree,Nbonds,Nangs,Noffplane)
             pars, cov = curve_fit(f=Energy, xdata=x_in, ydata=H,p0=[0.6,0.3,0.3])
         elif type_opt == "all":
-            Energy = partial(utils.Ebonds,Nbonds,Nangs)
+            Energy = partial(functions.Ebonds,Nbonds,Nangs)
             pars, cov = curve_fit(f=Energy, xdata=x_in, ydata=H,p0=[0]*numparams)
         print(pars)
         print(cov)

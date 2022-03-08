@@ -6,10 +6,11 @@ from numpy import random
 from scipy.optimize import curve_fit
 import utils
 from functools import partial
+import vdw
 
 class Bonds():
 
-    def __init__(self,structure,optimize=True):
+    def __init__(self,structure,optimize=True,first_static=True):
         self.structure_eq = copy.deepcopy(structure)
 
         if optimize == True:
@@ -18,7 +19,8 @@ class Bonds():
             self.structure_eq.LoadGeometry()
         else:
             self.structure_eq.SaveGeometry()
-            self.structure_eq.RunStatic()
+            if first_static == True:
+                self.structure_eq.RunStatic()
         self.BondMatrix = None
         self.EqDistanceMatrix = self.structure_eq.distances
         self.EqPos = []
@@ -80,6 +82,71 @@ class Bonds():
         ForceForward = np.inner(newForces[i],versor)-np.inner(eqForces[i],versor)
 
         return ForceForward/db
+
+    def GetOurHessian(self,db=0.01,vdw=None):
+        self.structure_eq.SaveGeometry()
+        self.structure_eq.RunStatic()
+        eqForces = self.structure_eq.GetForces()
+        structure = copy.deepcopy(self.structure_eq)
+
+        Hessian = np.zeros((structure.Nat*3,structure.Nat*3))
+        for i in range(structure.Nat):
+
+            ############x##############
+            structure.MoveBond(i,"x",dv=db)
+            structure.SaveGeometry()
+            structure.RunStatic(vdw)
+            F = structure.GetForces()
+            for j in range(structure.Nat):
+                Hessian[3*i][3*j]=Hessian[3*i][3*j]+(F[j][0]-eqForces[j][0])/(2*db)
+                Hessian[3*i][3*j+1]=Hessian[3*i][3*j+1]+(F[j][1]-eqForces[j][1])/(2*db)
+                Hessian[3*i][3*j+2]=Hessian[3*i][3*j+2]+(F[j][2]-eqForces[j][2])/(2*db)
+            structure.MoveBond(i,"x",dv=-2*db)
+            structure.SaveGeometry()
+            structure.RunStatic(vdw)
+            F = structure.GetForces()
+            for j in range(structure.Nat):
+                Hessian[3*i][3*j]=Hessian[3*i][3*j]-(F[j][0]-eqForces[j][0])/(2*db)
+                Hessian[3*i][3*j+1]=Hessian[3*i][3*j+1]-(F[j][1]-eqForces[j][1])/(2*db)
+                Hessian[3*i][3*j+2]=Hessian[3*i][3*j+2]-(F[j][2]-eqForces[j][2])/(2*db)
+            structure = copy.deepcopy(self.structure_eq)
+            ############y############
+            structure.MoveBond(i,"y",dv=db)
+            structure.SaveGeometry()
+            structure.RunStatic(vdw)
+            F = structure.GetForces()
+            for j in range(structure.Nat):
+                Hessian[3*i+1][3*j]=Hessian[3*i+1][3*j]+(F[j][0]-eqForces[j][0])/(2*db)
+                Hessian[3*i+1][3*j+1]=Hessian[3*i+1][3*j+1]+(F[j][1]-eqForces[j][1])/(2*db)
+                Hessian[3*i+1][3*j+2]=Hessian[3*i+1][3*j+2]+(F[j][2]-eqForces[j][2])/(2*db)
+            structure.MoveBond(i,"y",dv=-2*db)
+            structure.SaveGeometry()
+            structure.RunStatic(vdw)
+            F = structure.GetForces()
+            for j in range(structure.Nat):
+                Hessian[3*i+1][3*j]=Hessian[3*i+1][3*j]-(F[j][0]-eqForces[j][0])/(2*db)
+                Hessian[3*i+1][3*j+1]=Hessian[3*i+1][3*j+1]-(F[j][1]-eqForces[j][1])/(2*db)
+                Hessian[3*i+1][3*j+2]=Hessian[3*i+1][3*j+2]-(F[j][2]-eqForces[j][2])/(2*db)
+            structure = copy.deepcopy(self.structure_eq)
+            ############z############
+            structure.MoveBond(i,"z",dv=db)
+            structure.SaveGeometry()
+            structure.RunStatic(vdw)
+            F = structure.GetForces()
+            for j in range(structure.Nat):
+                Hessian[3*i+2][3*j]=Hessian[3*i+2][3*j]+(F[j][0]-eqForces[j][0])/(2*db)
+                Hessian[3*i+2][3*j+1]=Hessian[3*i+2][3*j+1]+(F[j][1]-eqForces[j][1])/(2*db)
+                Hessian[3*i+2][3*j+2]=Hessian[3*i+2][3*j+2]+(F[j][2]-eqForces[j][2])/(2*db)
+            structure.MoveBond(i,"z",dv=-2*db)
+            structure.SaveGeometry()
+            structure.RunStatic(vdw)
+            F = structure.GetForces()
+            for j in range(structure.Nat):
+                Hessian[3*i+2][3*j]=Hessian[3*i+2][3*j]-(F[j][0]-eqForces[j][0])/(2*db)
+                Hessian[3*i+2][3*j+1]=Hessian[3*i+2][3*j+1]-(F[j][1]-eqForces[j][1])/(2*db)
+                Hessian[3*i+2][3*j+2]=Hessian[3*i+2][3*j+2]-(F[j][2]-eqForces[j][2])/(2*db)
+            structure = copy.deepcopy(self.structure_eq)
+        return Hessian
 
     def GetForces(self,dv_matrix):
         self.structure_eq.SaveGeometry()
@@ -313,3 +380,58 @@ class Bonds():
             for k in range(len(bonds)):
                 f.write(str(k)+' '+str(bonds[k])+'\n')
 
+    def CalcSaveHessianComp(self,decour=""):
+        structure = copy.deepcopy(self.structure_eq)
+        structure.SaveGeometry()
+        structure.RunHessian("MBD")
+        HMBD = structure.GetHessian(False)
+        structure.RunHessian("PW")
+        HPW= structure.GetHessian(False)
+        structure.RunHessian()
+        H0 = structure.GetHessian(False)
+        HMBD = HMBD-H0
+        HMBD = structure._condenseHessian(HMBD).T
+        HPW = HPW-H0
+        HPW = structure._condenseHessian(HPW).T
+        H0 = structure._condenseHessian(H0).T
+
+        with open('out/HessianMBD_'+decour+'.txt', 'w') as f:
+            for i in range(len(HMBD)):
+                for j in range(len(HMBD[i])):
+                    f.write(str(HMBD[i][j])+' ')
+                f.write('\n')
+        with open('out/HessianPW_'+decour+'.txt', 'w') as f:
+            for i in range(len(HPW)):
+                for j in range(len(HPW[i])):
+                    f.write(str(HPW[i][j])+' ')
+                f.write('\n')
+        with open('out/Hessian_'+decour+'.txt', 'w') as f:
+            for i in range(len(H0)):
+                for j in range(len(H0[i])):
+                    f.write(str(H0[i][j])+' ')
+                f.write('\n')
+
+    def CalcSaveHessianCompOur(self,decour=""):
+        mbd = vdw.vdWclass()
+        HMBD = mbd.calculate(self.structure_eq.PosAsList(),["hessian"],"MBD")
+        HPW = mbd.calculate(self.structure_eq.PosAsList(),["hessian"],"TS")
+        HMBD = self.structure_eq._condenseHessian(HMBD).T
+        HPW = self.structure_eq._condenseHessian(HPW).T
+
+
+        with open('out/HessianMBD_'+decour+'.txt', 'w') as f:
+            for i in range(len(HMBD)):
+                dist = self.structure_eq.Distances(i)
+                for j in range(len(HMBD[i])):
+                    f.write(str(HMBD[i][j])+' ')
+                for j in range(self.structure_eq.Nat):
+                    f.write(str(dist[j])+' ')
+                f.write('\n')
+        with open('out/HessianPW_'+decour+'.txt', 'w') as f:
+            for i in range(len(HPW)):
+                dist = self.structure_eq.Distances(i)
+                for j in range(len(HPW[i])):
+                    f.write(str(HPW[i][j])+' ')
+                for j in range(self.structure_eq.Nat):
+                    f.write(str(dist[j])+' ')
+                f.write('\n')

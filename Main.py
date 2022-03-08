@@ -1,34 +1,19 @@
 import structures
 from mdhandler import Handler as MDH
-import numpy as np
-import matplotlib.pyplot as plt
 from bondcalc import Bonds
-import time
-import sys
 import imp
 import numpy as np
-from scipy.optimize import curve_fit
-from functools import partial
+import vdw
 
-Nat=10
+from pymbd import mbd_energy as MBDcalc_Py, from_volumes
+
+Nat=50
 R0=2.4
-
-Sphere = structures.Chain(Nat,R0)
-# Sphere.LoadGeometry("C76-Td.cc1")
-Sphere.RunOptimize()
-Sphere.SaveGeometry()
-Sphere.UpdateR0s()
-print(Sphere.R0)
-Sphere.ShowStruct()
-Sphere.RunHessian()
-
-# for i in range(4):
-# 	#imp.StaticOverEvolve_Chains(i*100+50,40,40)
-# 	imp.CorrelationOverEvolve_Chains(i*100+50,20,20)
+	
 
 
-# Chain = structures.Chain(Nat,R0)
-
-# md = MDH(Chain,False)
-# md.RunMD(100,300,[0,9])
-# md.LoadEvolution()
+Chain1 = structures.Sphere(Nat,R0)
+Chain1.LoadGeometry("C320.cc1")
+# Chain1 = structures.Ring(Nat,R0)
+bonder = Bonds(Chain1,False,False)
+bonder.CalcSaveHessianCompOur("C320")

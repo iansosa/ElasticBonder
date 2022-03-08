@@ -25,7 +25,7 @@ Hamiltonian = DFTB {
   Filling = Fermi {
     Temperature[kelvin] = 200.0000000000000000
   }
-  SCCTolerance = 1.0000000000000001E-007
+  SCCTolerance = 1.0000000000000001E-004
 
 }
 

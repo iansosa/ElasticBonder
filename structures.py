@@ -81,7 +81,6 @@ class Chain(Handler):
                 cummulative = cummulative + dx[k]
             self.x.append(cummulative)
 
-
         # dx = []
         # dz = []
         # self.x = []
@@ -103,6 +102,7 @@ class Chain(Handler):
 
         self.y, self.z =0*indices, 0*indices;
         self.y = self.y.tolist()
+        self.z = self.z.tolist()
         self.R0s, self.widths = self.GetR0s(self.R0neighbours)
 
     def GetR0s(self,Nneighbours): #returns a list of R0 estimations and errors from every atom considering Nneighbours closest neighbours

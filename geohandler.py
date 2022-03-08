@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plot
+import math
 import sys
 import subprocess
 import shutil
@@ -53,6 +54,11 @@ class Handler():
 
     def Pos(self): #returns the positions of every atom
         return self.x, self.y, self.z
+    def PosAsList(self): #returns the positions of every atom as a list
+        pos = []
+        for i in range(self.Nat):
+            pos.append([self.x[i],self.y[i],self.z[i]])
+        return pos
 
     def ShowStruct(self): #displays the 3D structure
 
@@ -321,6 +327,46 @@ class Handler():
             a = list(map(float, a[1:]))
             Forces.append(a)
         return np.array(Forces)
+
+    def GetHessian(self,condensed=False): #load the hessian matrix from dftb
+        try:
+            file = open("DFTB+/hessian.out", "r+")
+        except OSError:
+            print ("Could not open detailed.out file")
+            sys.exit()
+
+        ceil = math.ceil(float(3*self.Nat)/float(4))
+        lines = file.readlines()
+        Hessian = []
+        for i in range(int(len(lines)/ceil)):
+            row = []
+            for j in range(ceil):
+                a = lines[i*ceil+j].split(' ')
+                a = list(filter(lambda x: x != '', a))
+                a = list(map(float, a))
+                row = row + a
+            Hessian.append(np.array(row))
+
+        if condensed==True:
+            HessianCond=[]
+            for i in range(self.Nat*3):
+                HessianCondColumn = []
+                for j in range(self.Nat):
+                    cond = np.sqrt(Hessian[i][j*3]**2+Hessian[i][j*3+1]**2+Hessian[i][j*3+2]**2)
+                    HessianCondColumn.append(cond)
+                HessianCond.append(np.array(HessianCondColumn))
+            return np.array(HessianCond)
+        return np.array(Hessian)
+
+    def _condenseHessian(self,Hessian): #calculates the condensed Hessian for a given Hessian
+        HessianCond=[]
+        for i in range(self.Nat*3):
+            HessianCondColumn = []
+            for j in range(self.Nat):
+                cond = np.sqrt(Hessian[i][j*3]**2+Hessian[i][j*3+1]**2+Hessian[i][j*3+2]**2)
+                HessianCondColumn.append(cond)
+            HessianCond.append(np.array(HessianCondColumn))
+        return np.array(HessianCond)
 
     def GetEnergy(self): #load the total energy from DFTB
         try:

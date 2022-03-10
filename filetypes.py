@@ -80,6 +80,28 @@ def Loadcc1(path,conversion):
 
     return Nat, geometry
 
+def Loadtxt(path,conversion):
+    try:
+        file = open(path, "r+")
+    except OSError:
+        print ("Could not open cc1 file")
+        sys.exit()
+    lines = file.readlines()
+
+    Nat = len(lines)
+
+    geometry = []
+    for i in range(len(lines)):
+        a = lines[i].split(' ')
+        a = list(filter(lambda x: x != '', a))
+        a = list(map(float, a))
+        geometry.append(a)
+
+    arr_t = np.array(geometry).T/conversion
+    geometry = arr_t.tolist()
+
+    return Nat, geometry
+
 def Loadxyz_single(path,conversion):
     try:
         file = open(path, "r+")

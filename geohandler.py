@@ -156,10 +156,10 @@ class Handler():
         self.CalcBondAngles()
         self.CalcBondOffPlane()
 
-    def SaveGeometry(self): #saves the geometry to a gen file in angstroms
+    def SaveGeometry(self,decour=""): #saves the geometry to a gen file in angstroms
         print("Saving geometry..")
         angstrom = 0.529177249
-        with open('DFTB+/geom.gen', 'w') as f:
+        with open('DFTB+/geom'+decour+'.gen', 'w') as f:
             f.write(str(self.Nat)+' C\n')
             f.write('  C\n')
             for i in range(self.Nat):
@@ -193,6 +193,11 @@ class Handler():
         if extension == "cc1":
             recognized = True
             self.Nat, geometry = filetypes.Loadcc1("SavedStructures/"+path,angstrom)
+
+        if extension == "txt":
+            recognized = True
+            self.Nat, geometry = filetypes.Loadtxt("SavedStructures/"+path,angstrom)
+            print(str(self.Nat)+" atoms loaded")
 
         if recognized == False:
             print ("Extension not recognized")

@@ -5,6 +5,7 @@ import numpy.linalg as LA
 from numpy import random
 from scipy.optimize import curve_fit
 import utils
+import functions
 from functools import partial
 import vdw
 

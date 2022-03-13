@@ -273,3 +273,100 @@ def CorrelationOverEvolve_Chain(temp,Length):
     with open('out/corr_'+str(temp)+'.txt', 'w') as f:
         for i in range(len(corrxx)):
             f.write(str(i)+ " " +str(corrxx[i])+" " +str(corryy[i])+" " +str(corrzz[i])+" " +str(corrxy[i])+" " +str(corrxz[i])+" " +str(corryz[i])+" " +str(corrxx_abs[i])+" " +str(corryy_abs[i])+" " +str(corrzz_abs[i])+" " +str(corrxy_abs[i])+" " +str(corrxz_abs[i])+" " +str(corryz_abs[i])+"\n")
+
+def fixnanotube(name):
+
+    Nat=50
+    R0=2.4
+
+    Chain = structures.Sphere(Nat,R0)
+    Chain.LoadGeometry(name)
+    pos = Chain.PosAsList()
+
+    repeat = []
+    for x in range(6*16):
+        repeat.append(pos[16*10+x])
+    groups = []
+    for i in range(int(len(repeat)/16)):
+        z = 0
+        for j in range(16):
+            z = z + repeat[i*16+j][2]
+        groups.append(z/16)
+    shift = groups[2]-groups[1]
+
+    custom1 = structures.Custom(repeat)
+    for x in range(5):
+        custom2 = structures.Custom(repeat)
+        groups = []
+        pos = custom1.PosAsList()
+        for i in range(int(len(pos)/16)):
+            z = 0
+            for j in range(16):
+                z = z + pos[i*16+j][2]
+            groups.append(z/16)
+        custom2.MoveAll([0,0,groups[len(groups)-1]-groups[0]+shift])
+        custom1.add(custom2)
+    repeat = repeat[0:64]
+    custom2 = structures.Custom(repeat)
+    groups = []
+    pos = custom1.PosAsList()
+    for i in range(int(len(pos)/16)):
+        z = 0
+        for j in range(16):
+            z = z + pos[i*16+j][2]
+        groups.append(z/16)
+    custom2.MoveAll([0,0,groups[len(groups)-1]-groups[0]+shift])
+    custom1.add(custom2)
+
+    pos = custom1.PosAsList()
+    groups = []
+    for i in range(int(len(pos)/16)):
+        z = 0
+        for j in range(16):
+            z = z + pos[i*16+j][2]
+        groups.append(z/16)
+    for i in range(len(groups)-1):
+        print(groups[i+1]-groups[i])
+
+    custom1.SaveGeometry("nanotube_fixed")
+    custom1.ShowStruct()
+
+def bucklingtest(vdw=None):
+
+    Nat = 5
+    R0 = 2.4
+
+    u = 0
+    du = -5.0/100.0
+
+    if vdw == None:
+        struct_name = "NanotubeC640.gen"
+    elif vdw == "MBD":
+        struct_name = "NanotubeC640_MBD.gen"
+    elif vdw == "PW":
+        struct_name = "NanotubeC640_PW.gen"
+
+    chain = structures.Sphere(Nat,R0)
+    chain.LoadGeometry(struct_name)
+    chain.SaveGeometry()
+    chain.RunOptimize(vdw=vdw,static=None,read_charges=False)
+    chain.LoadGeometry()
+    if vdw == None:
+        chain.SaveGeometry("_"+str(u),"buckling")
+    else:
+        chain.SaveGeometry("_"+vdw+"_"+str(u),"buckling")
+
+
+    Nat = chain.Nat
+
+    for i in range(100):
+        for j in range(16):
+            chain.Displace(Nat-1-j,[0,0,du])
+        chain.SaveGeometry()
+        chain.RunOptimize(vdw=vdw,static=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,Nat-1,Nat-2,Nat-3,Nat-4,Nat-5,Nat-6,Nat-7,Nat-8,Nat-9,Nat-10,Nat-11,Nat-12,Nat-13,Nat-14,Nat-15,Nat-16],read_charges=True)
+        chain.LoadGeometry()
+        u = u + du
+        if vdw == None:
+            chain.SaveGeometry("_"+str(u),"buckling")
+        else:
+            chain.SaveGeometry("_"+vdw+"_"+str(u),"buckling")

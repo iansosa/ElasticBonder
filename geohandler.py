@@ -156,10 +156,13 @@ class Handler():
         self.CalcBondAngles()
         self.CalcBondOffPlane()
 
-    def SaveGeometry(self,decour=""): #saves the geometry to a gen file in angstroms
+    def SaveGeometry(self,decour="",path=None): #saves the geometry to a gen file in angstroms
         print("Saving geometry..")
         angstrom = 0.529177249
-        with open('DFTB+/geom'+decour+'.gen', 'w') as f:
+        name='DFTB+/geom'+decour+'.gen'
+        if path != None:
+            name = 'DFTB+/'+path+'/geom'+decour+'.gen'
+        with open(name, 'w') as f:
             f.write(str(self.Nat)+' C\n')
             f.write('  C\n')
             for i in range(self.Nat):
@@ -216,8 +219,48 @@ class Handler():
         self.CalcBondAngles()
         self.CalcBondOffPlane()
 
-    def RunOptimize(self):
-        shutil.copyfile('DFTB+/optimize.hsd', 'DFTB+/dftb_in.hsd')
+    def RunOptimize(self,vdw=None,static=None,read_charges=False):
+        if vdw == None:
+            shutil.copyfile('DFTB+/optimize.hsd', 'DFTB+/dftb_in.hsd')
+        elif vdw == "MBD":
+            shutil.copyfile('DFTB+/optimize_mbd.hsd', 'DFTB+/dftb_in.hsd')
+        elif vdw == "PW":
+            shutil.copyfile('DFTB+/optimize_pw.hsd', 'DFTB+/dftb_in.hsd')
+        else:
+            print ("Dispersion type not recognized")
+            sys.exit()
+        try:
+            file = open("DFTB+/dftb_in.hsd", "r+")
+        except OSError:
+            print ("Could not open detailed.out file")
+            sys.exit()
+
+        lines = file.readlines()
+        file.close()
+
+        if read_charges == True:
+            idx = -1
+            for i in range(len(lines)):
+                if lines[i].find("ReadInitialCharges") != -1:
+                    idx = i
+            targetline = "  ReadInitialCharges = Yes\n"
+            lines[idx] = targetline
+
+        if static != None:
+            idx = -1
+            for i in range(len(lines)):
+                if lines[i].find("MovedAtoms") != -1:
+                    idx = i
+            targetline = "  MovedAtoms = !("
+            for j in range(len(static)):
+                targetline = targetline + str(static[j]+1) + " "
+            targetline = targetline + ")"+"\n"
+            lines[idx] = targetline
+
+        with open('DFTB+/dftb_in.hsd', 'w') as f:
+            for i in range(len(lines)):
+                f.write(lines[i])
+
         subprocess.run("./dftbOpt.sh", shell=True)
 
     def RunStatic(self,vdw=None):

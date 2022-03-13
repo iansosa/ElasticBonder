@@ -60,6 +60,28 @@ class Ring(Handler):
         R0.append(np.sqrt((self.x[self.Nat-1]-self.x[0])**2+(self.y[self.Nat-1]-self.y[0])**2+(self.z[self.Nat-1]-self.z[0])**2))
         return R0, width
 
+class Custom(Handler):
+
+    def __init__(self, pos):
+        self.Nat = len(pos)
+        R0=0
+        self.x = []
+        self.y = []
+        self.z = []
+        for i in range(self.Nat):
+            self.x.append(pos[i][0])
+            self.y.append(pos[i][1])
+            self.z.append(pos[i][2])
+
+        super().__init__(self.Nat,R0)
+
+    def SetPos(self,Nat,R0): #creates a ring with N equidistant atoms and interatomic distance R0
+        self.Nat = Nat
+        self.R0 = R0
+
+        self.R0s, self.widths = self.GetR0s(self.R0neighbours)
+        self.UpdateR0s()
+
 
 class Chain(Handler):
 

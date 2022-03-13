@@ -83,7 +83,7 @@ class vdWclass:
             Eij = - f*C6ij*invrij**(6)
             bracket = d/beta*f*np.exp(-d*(rij/beta-1.)) - 6.*invrij
             Fij = bracket[:,:,None]*Eij[:,:,None]*invrij[:,:,None]*Rij
-            return np.sum(Fij,axis=1)
+            return -np.sum(Fij,axis=1)
         
 
     def _get_hessian(self,db=0.01):

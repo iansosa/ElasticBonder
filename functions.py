@@ -44,3 +44,14 @@ def EbondsThree(Nbonds,Nangs,Noffplane,x,b,a,o):
         else:
         	H = H + 0.5*o*(x[i])*(x[i])
     return H
+
+def EbondsThree_proper(Nbonds,Nangs,Noffplane,Nproper,x,b,a,o):
+    H = 0
+    for i in range(Nbonds+Nangs+Noffplane+Nproper):
+        if i < Nbonds:
+            H = H + 0.5*b*(x[i])*(x[i])
+        elif i >= Nbonds and i < Nbonds+Nangs:
+            H = H + 0.5*a*(x[i])*(x[i])
+        elif i >= Nbonds+Nangs+Noffplane:
+            H = H + 0.5*o*(x[i])*(x[i])
+    return H

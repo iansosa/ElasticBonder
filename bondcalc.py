@@ -244,6 +244,7 @@ class Bonds():
         structure.CalcBondDistances()
         structure.CalcBondAngles()
         structure.CalcBondOffPlane()
+        structure.CalcBondDihedral()
 
         bonds_eq = []
         alreadyconsidered = []
@@ -252,6 +253,7 @@ class Bonds():
                 if ([i,self.structure_eq.bonds[i][j]] in alreadyconsidered) == False:
                     alreadyconsidered.append([self.structure_eq.bonds[i][j],i])
                     bonds_eq.append(self.structure_eq.Distance(i,self.structure_eq.bonds[i][j]))
+
         angles_eq = []
         for i in range(len(self.structure_eq.angles)):
             if self.structure_eq.angles[i] != None: 
@@ -263,6 +265,11 @@ class Bonds():
             if self.structure_eq.offplane[i] != None: 
                     offplane_eq.append(self.structure_eq.offplane[i][3])
 
+        dihed_eq = []
+        for i in range(len(self.structure_eq.dihedral)):
+            if self.structure_eq.dihedral[i] != None: 
+                    dihed_eq.append(self.structure_eq.dihedral[i][4])
+
         bonds = []
         alreadyconsidered = []
         for i in range(len(structure.bonds)):
@@ -270,6 +277,7 @@ class Bonds():
                 if ([i,structure.bonds[i][j]] in alreadyconsidered) == False:
                     alreadyconsidered.append([structure.bonds[i][j],i])
                     bonds.append(structure.Distance(i,structure.bonds[i][j]))
+
         angles = []
         for i in range(len(structure.angles)):
             if structure.angles[i] != None: 
@@ -281,6 +289,11 @@ class Bonds():
             if structure.offplane[i] != None: 
                     offplane.append(structure.offplane[i][3])
 
+        dihed = []
+        for i in range(len(structure.dihedral)):
+            if structure.dihedral[i] != None: 
+                    dihed.append(structure.dihedral[i][4])
+
         for i in range(len(bonds)):
             bonds[i] = bonds[i] - bonds_eq[i]
 
@@ -290,7 +303,10 @@ class Bonds():
         for i in range(len(offplane)):
             offplane[i] = offplane[i] - offplane_eq[i]
 
-        return structure.GetEnergy() - H0, bonds , angles , offplane
+        for i in range(len(dihed)):
+            dihed[i] = dihed[i] - dihed_eq[i]
+
+        return structure.GetEnergy() - H0, bonds , angles , offplane , dihed
 
     def FitEnergy(self,iters=100,type_opt="two"):
 
@@ -303,6 +319,7 @@ class Bonds():
         distances = []
         angles = []
         offplane = []
+        dihed = []
         for i in range(iters):
             print(str(i)+"/"+str(iters))
             results = self.CalcSaveEnergyPerturbation(H0)
@@ -310,17 +327,22 @@ class Bonds():
             distances.append(results[1])
             angles.append(results[2])
             offplane.append(results[3])
-            x_in.append(results[1]+results[2]+results[3]) 
+            dihed.append(results[4])
+            x_in.append(results[1]+results[2]+results[3]+results[4]) 
         Nbonds = len(distances[0])
         Nangs = len(angles[0])
         Noffplane = len(offplane[0])
-        numparams = Nbonds + Nangs + Noffplane
+        Ndihed = len(dihed[0])
+        numparams = Nbonds + Nangs + Noffplane + Ndihed
         x_in = np.array(x_in).T
         if type_opt == "two":
             Energy = partial(functions.EbondsTwo,Nbonds,Nangs)
             pars, cov = curve_fit(f=Energy, xdata=x_in, ydata=H,p0=[0.6,0.3])
         if type_opt == "three":
             Energy = partial(functions.EbondsThree,Nbonds,Nangs,Noffplane)
+            pars, cov = curve_fit(f=Energy, xdata=x_in, ydata=H,p0=[0.6,0.3,0.3])
+        if type_opt == "three_proper":
+            Energy = partial(functions.EbondsThree_proper,Nbonds,Nangs,Noffplane,Ndihed)
             pars, cov = curve_fit(f=Energy, xdata=x_in, ydata=H,p0=[0.6,0.3,0.3])
         elif type_opt == "all":
             Energy = partial(functions.Ebonds,Nbonds,Nangs)

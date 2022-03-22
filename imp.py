@@ -359,13 +359,13 @@ def bucklingtest(vdw=None):
 
     Nat = chain.Nat
 
-    for i in range(100):
+    for i in range(1,100):
         for j in range(16):
             chain.Displace(Nat-1-j,[0,0,du])
         chain.SaveGeometry()
         chain.RunOptimize(vdw=vdw,static=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,Nat-1,Nat-2,Nat-3,Nat-4,Nat-5,Nat-6,Nat-7,Nat-8,Nat-9,Nat-10,Nat-11,Nat-12,Nat-13,Nat-14,Nat-15,Nat-16],read_charges=True)
         chain.LoadGeometry()
-        u = u + du
+        u = i*du
         if vdw == None:
             chain.SaveGeometry("_"+str(u),"buckling")
         else:

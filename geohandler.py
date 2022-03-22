@@ -28,11 +28,13 @@ class Handler():
         self.bonds = None
         self.CalcBondedNeighbours(self.Cutoffneighbours)
         self.offplane = None
+        self.dihedral = None
         self.angles = None #every angle formed by 3 atoms. angles[i] holds all of the angles related to atom i, None if there are none.  angles[i][k][0],angles[i][k][1] indices of two atoms forming angle k. angles[i][k][2] the angle in radians. angles[i][k][3] a perpendicular vector to angles[i][k][0],angles[i][k][1]
         self.distances = None
         self.CalcBondDistances()
         self.CalcBondAngles()
         self.CalcBondOffPlane()
+        self.CalcBondDihedral()
 
     def add(self,structure):
         self.Nat = self.Nat+structure.Nat
@@ -47,6 +49,7 @@ class Handler():
         self.CalcBondDistances()
         self.CalcBondAngles()
         self.CalcBondOffPlane()
+        self.CalcBondDihedral()
 
     def SetPos(self,Nat,R0): #set the position of the geometry
         print ("SetPos Unimplemented")
@@ -69,7 +72,7 @@ class Handler():
         x_scale=1
         y_scale=1
         z_scale=1.3
-
+        
         scale=np.diag([x_scale, y_scale, z_scale, 1.0])
         scale=scale*(1.0/scale.max())
         scale[3,3]=1.0
@@ -155,6 +158,7 @@ class Handler():
         self.CalcBondDistances()
         self.CalcBondAngles()
         self.CalcBondOffPlane()
+        self.CalcBondDihedral()
 
     def SaveGeometry(self,decour="",path=None): #saves the geometry to a gen file in angstroms
         print("Saving geometry..")
@@ -218,6 +222,7 @@ class Handler():
         self.CalcBondDistances()
         self.CalcBondAngles()
         self.CalcBondOffPlane()
+        self.CalcBondDihedral()
 
     def RunOptimize(self,vdw=None,static=None,read_charges=False):
         if vdw == None:
@@ -516,6 +521,26 @@ class Handler():
                 # inner = np.inner(v,cross)
                 # self.offplane[i].append(np.arcsin(inner/distance))
 
+    def CalcBondDihedral(self): #calculates the list of dihedral angles in the whole structure, bonds are defined using Cutoffneighbours
+        self.dihedral = []
+        for i in range(self.Nat):
+            for j in self.bonds[i]:
+                for k in self.bonds[j]:
+                    for l in self.bonds[k]:
+                        if (j in self.bonds[i]) and (k in self.bonds[j]) and (k not in self.bonds[i]) and (l in self.bonds[k]) and (l not in self.bonds[j]) and (l not in self.bonds[i]):
+                            rij = self.GetVector(i,j)
+                            rjk = self.GetVector(j,k)
+                            rlk = self.GetVector(l,k)
+                            m = np.cross(rij,rjk)
+                            n = np.cross(rlk,rjk)
+                            sin = np.inner(n,rij)*LA.norm(rjk)/(LA.norm(m)*LA.norm(n))
+                            alreadyconsidered = False
+                            for it in range(len(self.dihedral)):
+                                if self.dihedral[it][:4] == [l,k,j,i]:
+                                    alreadyconsidered = True
+                                    break
+                            if alreadyconsidered == False:
+                                self.dihedral.append([i,j,k,l,np.arcsin(sin)])
 
     def CalcBondDistances(self): #calculates the list of bond angles in the whole structure, bonds are defined using Cutoffneighbours
         self.distances = []

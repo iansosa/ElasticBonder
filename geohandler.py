@@ -5,6 +5,7 @@ import sys
 import subprocess
 import shutil
 import os.path
+import os
 import copy
 import filetypes
 import numpy.linalg as LA
@@ -166,6 +167,8 @@ class Handler():
         name='DFTB+/geom'+decour+'.gen'
         if path != None:
             name = 'DFTB+/'+path+'/geom'+decour+'.gen'
+            if not os.path.exists('DFTB+/'+path):
+                os.makedirs('DFTB+/'+path)
         with open(name, 'w') as f:
             f.write(str(self.Nat)+' C\n')
             f.write('  C\n')

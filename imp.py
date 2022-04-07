@@ -337,27 +337,38 @@ def bucklingtest(vdw=None):
     R0 = 2.4
 
     u = 0
-    du = -5.0/100.0
+    du = 5.0/100.0
+
+    displ = []
+    displ.append("0.00")
+    for i in range(1,100):
+        u=i*du
+        ru = str(round(u,2))
+        if len(ru) == 3:
+            ru = ru + '0'
+        displ.append(ru)
+    print(displ)
 
     if vdw == None:
-        struct_name = "NanotubeC640.gen"
+        struct_name = "/buckling/novdw/geom_-0.00.gen"
     elif vdw == "MBD":
-        struct_name = "NanotubeC640_MBD.gen"
+        struct_name = "/buckling/MBD/geom_MBD_-0.00.gen"
     elif vdw == "PW":
-        struct_name = "NanotubeC640_PW.gen"
+        struct_name = "/buckling/PW/geom_PW_-0.00.gen"
 
     chain = structures.Sphere(Nat,R0)
     chain.LoadGeometry(struct_name)
+    Nat = chain.Nat
     chain.SaveGeometry()
-    chain.RunOptimize(vdw=vdw,static=None,read_charges=False)
+    chain.RunOptimize(vdw=vdw,static=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,Nat-1,Nat-2,Nat-3,Nat-4,Nat-5,Nat-6,Nat-7,Nat-8,Nat-9,Nat-10,Nat-11,Nat-12,Nat-13,Nat-14,Nat-15,Nat-16],read_charges=False)
     chain.LoadGeometry()
     if vdw == None:
-        chain.SaveGeometry("_"+str(u),"buckling")
+        chain.SaveGeometry("_"+displ[0],"buckling")
     else:
-        chain.SaveGeometry("_"+vdw+"_"+str(u),"buckling")
+        chain.SaveGeometry("_"+vdw+"_"+displ[0],"buckling")
 
 
-    Nat = chain.Nat
+    
 
     for i in range(1,100):
         for j in range(16):
@@ -367,9 +378,9 @@ def bucklingtest(vdw=None):
         chain.LoadGeometry()
         u = i*du
         if vdw == None:
-            chain.SaveGeometry("_"+str(u),"buckling")
+            chain.SaveGeometry("_"+displ[i],"buckling")
         else:
-            chain.SaveGeometry("_"+vdw+"_"+str(u),"buckling")
+            chain.SaveGeometry("_"+vdw+"_"+displ[i],"buckling")
 
 def buckling_stats():
 

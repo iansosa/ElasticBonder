@@ -19,8 +19,16 @@ class Handler():
         self.evolution = None
         self.acelerations = None #acceleration in a.u.
 
-    def RunMD(self,steps,temp=400,static=None,save_steps=1):
-        shutil.copyfile('DFTB+/md.hsd', 'DFTB+/dftb_in.hsd')
+    def RunMD(self,steps,temp=400,vdw=None,static=None,save_steps=1):
+        if vdw == None:
+            shutil.copyfile('DFTB+/md.hsd', 'DFTB+/dftb_in.hsd')
+        elif vdw == "MBD":
+            shutil.copyfile('DFTB+/md_mbd.hsd', 'DFTB+/dftb_in.hsd')
+        elif vdw == "PW":
+            shutil.copyfile('DFTB+/md_pw.hsd', 'DFTB+/dftb_in.hsd')
+        else:
+            print ("Dispersion type not recognized")
+            sys.exit()
         try:
             file = open("DFTB+/dftb_in.hsd", "r+")
         except OSError:

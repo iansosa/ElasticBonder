@@ -14,12 +14,13 @@ class Handler():
             self.structure_eq.SaveGeometry()
             self.structure_eq.RunOptimize()
             self.structure_eq.LoadGeometry()
+            self.structure_eq.SaveGeometry()
         else:
             self.structure_eq.SaveGeometry()
         self.evolution = None
         self.acelerations = None #acceleration in a.u.
 
-    def RunMD(self,steps,temp=400,vdw=None,static=None,save_steps=1):
+    def RunMD(self,steps,temp=400,vdw=None,keepstationary=False,static=None,save_steps=1):
         if vdw == None:
             shutil.copyfile('DFTB+/md.hsd', 'DFTB+/dftb_in.hsd')
         elif vdw == "MBD":
@@ -51,6 +52,17 @@ class Handler():
         targetline = "  MDRestartFrequency = " + str(save_steps) +"\n"
         lines[idx] = targetline
 
+        if keepstationary == False:
+            keepstationary = "No"
+        else:
+            keepstationary = "Yes"
+        idx = -1
+        for i in range(len(lines)):
+            if lines[i].find("KeepStationary") != -1:
+                idx = i
+        targetline = "  KeepStationary = " + keepstationary +"\n"
+        lines[idx] = targetline
+
         idx = -1
         for i in range(len(lines)):
             if lines[i].find("Temperature [Kelvin]") != -1:
@@ -75,6 +87,9 @@ class Handler():
                 f.write(lines[i])
 
         subprocess.run("./dftbOpt.sh", shell=True)
+
+    def SaveEvolutionAs(self, name):
+        shutil.copyfile('DFTB+/geo_end.xyz', 'DFTB+/'+name+'.xyz')
 
     def LoadEvolution(self):
         angstrom = 0.529177249

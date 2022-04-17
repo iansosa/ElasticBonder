@@ -2,38 +2,45 @@ Geometry = GenFormat {
   <<< "geom.gen"
 }
 
-Driver = ConjugateGradient {
-  MovedAtoms = 1:-1
-  MaxForceComponent = 1E-6
-  MaxSteps = 3000
-  OutputPrefix = "geom.out"
-}
-
 Hamiltonian = DFTB {
   Scc = Yes
-  ReadInitialCharges = No
   SlaterKosterFiles {
     C-C = "Slater-Koster/3ob-3-1/C-C.skf"
+    H-H = "Slater-Koster/3ob-3-1/H-H.skf"
+    C-H = "Slater-Koster/3ob-3-1/C-H.skf"
+    H-C = "Slater-Koster/3ob-3-1/H-C.skf"
   }
   MaxAngularMomentum {
     C = "p"
+    H = "p"
   }
   ThirdOrderFull = Yes
   MaxSCCIterations = 10000
   HubbardDerivs { # gauss2011, DFTB3 calc
     C = -0.1492
+    H = -0.16
   }
   Filling = Fermi {
     Temperature[kelvin] = 200.0000000000000000
   }
-  SCCTolerance = 1.0000000000000001E-006
-  Dispersion = MBD {
-    KGRID = 1 1 1
-    Beta = 0.83
+  SCCTolerance = 1.0000000000000001E-007
+  KPointsAndWeights = SuperCellFolding {
+    48 0 0
+    0 48 0
+    0 0 1
+    0.5 0.5 0.0
   }
 }
 
-Options {}
+Driver = {
+  LatticeOpt = Yes
+  Isotropic = Yes
+}
+
+
+Options {
+  WriteChargesAsText = Yes
+}
 
 Analysis {
   CalculateForces = Yes

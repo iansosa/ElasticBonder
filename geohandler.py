@@ -37,6 +37,10 @@ class Handler():
         self.CalcBondOffPlane()
         self.CalcBondDihedral()
 
+        self.periodic = False
+        self.types = False
+        self.unit_cell = []
+
     def add(self,structure):
         self.Nat = self.Nat+structure.Nat
         # self.x = self.x.tolist()
@@ -164,22 +168,40 @@ class Handler():
     def SaveGeometry(self,decour="",path=None): #saves the geometry to a gen file in angstroms
         print("Saving geometry..")
         angstrom = 0.529177249
-        name='DFTB+/geom'+decour+'.gen'
-        if path != None:
-            name = 'DFTB+/'+path+'/geom'+decour+'.gen'
-            if not os.path.exists('DFTB+/'+path):
-                os.makedirs('DFTB+/'+path)
-        with open(name, 'w') as f:
-            f.write(str(self.Nat)+' C\n')
-            f.write('  C\n')
-            for i in range(self.Nat):
-                f.write('  '+str(i+1)+' 1  '+str(angstrom*self.x[i])+' '+str(angstrom*self.y[i])+' '+str(angstrom*self.z[i])+'\n')
+        if self.periodic == False:
+            name='DFTB+/geom'+decour+'.gen'
+            if path != None:
+                name = 'DFTB+/'+path+'/geom'+decour+'.gen'
+                if not os.path.exists('DFTB+/'+path):
+                    os.makedirs('DFTB+/'+path)
+            with open(name, 'w') as f:
+                f.write(str(self.Nat)+' C\n')
+                f.write('  C\n')
+                for i in range(self.Nat):
+                    f.write('  '+str(i+1)+' 1  '+str(angstrom*self.x[i])+' '+str(angstrom*self.y[i])+' '+str(angstrom*self.z[i])+'\n')
+        elif self.periodic == True:
+            name='DFTB+/geom'+decour+'.gen'
+            if path != None:
+                name = 'DFTB+/'+path+'/geom'+decour+'.gen'
+                if not os.path.exists('DFTB+/'+path):
+                    os.makedirs('DFTB+/'+path)
+            with open(name, 'w') as f:
+                f.write(str(self.Nat)+' S\n')
+                f.write('  C H\n')
+                for i in range(self.Nat):
+                    if self.types[i] == "C":
+                        f.write('  '+str(i+1)+' 1  '+str(angstrom*self.x[i])+' '+str(angstrom*self.y[i])+' '+str(angstrom*self.z[i])+'\n')
+                    elif self.types[i] == "H":
+                        f.write('  '+str(i+1)+' 2  '+str(angstrom*self.x[i])+' '+str(angstrom*self.y[i])+' '+str(angstrom*self.z[i])+'\n')
+                for i in range(len(self.unit_cell)):
+                    f.write('  '+str(angstrom*self.unit_cell[i][0])+' '+str(angstrom*self.unit_cell[i][1])+' '+str(angstrom*self.unit_cell[i][2])+'\n')
 
     def LoadGeometry(self,path="geom.out.xyz"): #loads the geometry from a gen, xyz or sdf file in angstroms and converts it into Bohr
         print("Loading geometry..")
         angstrom = 0.529177249
         extension = path[-3:]
         recognized = False
+        self.periodic = False
 
         if extension == "sdf":
             recognized = True
@@ -191,10 +213,10 @@ class Handler():
         if extension == "gen":
             recognized = True
             if path != "geom.out.gen":
-                self.Nat, geometry = filetypes.Loadgen("SavedStructures/"+path,angstrom)
+                self.Nat, geometry, self.periodic, self.types, self.unit_cell = filetypes.Loadgen("SavedStructures/"+path,angstrom)
                 print(str(self.Nat)+" atoms loaded")
             else:
-                self.Nat, geometry = filetypes.Loadgen("DFTB+/"+path,angstrom)
+                self.Nat, geometry, self.periodic, self.types, self.unit_cell = filetypes.Loadgen("DFTB+/"+path,angstrom)
 
         if extension == "xyz":
             recognized = True
@@ -216,6 +238,8 @@ class Handler():
         if self.Nat <= self.R0neighbours:
             self.R0neighbours=self.Nat-1
 
+        if self.periodic == True:
+            print("geometry is periodic")
         self.x = geometry[0]
         self.y = geometry[1]
         self.z = geometry[2]
@@ -228,21 +252,36 @@ class Handler():
         self.CalcBondDihedral()
 
     def RunOptimize(self,vdw=None,static=None,read_charges=False):
-        if vdw == None:
-            shutil.copyfile('DFTB+/optimize.hsd', 'DFTB+/dftb_in.hsd')
-        elif vdw == "MBD":
-            shutil.copyfile('DFTB+/optimize_mbd.hsd', 'DFTB+/dftb_in.hsd')
-        elif vdw == "PW":
-            shutil.copyfile('DFTB+/optimize_pw.hsd', 'DFTB+/dftb_in.hsd')
+        if self.periodic == False:
+            if vdw == None:
+                shutil.copyfile('DFTB+/optimize.hsd', 'DFTB+/dftb_in.hsd')
+            elif vdw == "MBD":
+                shutil.copyfile('DFTB+/optimize_mbd.hsd', 'DFTB+/dftb_in.hsd')
+            elif vdw == "PW":
+                shutil.copyfile('DFTB+/optimize_pw.hsd', 'DFTB+/dftb_in.hsd')
+            else:
+                print ("Dispersion type not recognized")
+                sys.exit()
+            try:
+                file = open("DFTB+/dftb_in.hsd", "r+")
+            except OSError:
+                print ("Could not open detailed.out file")
+                sys.exit()
         else:
-            print ("Dispersion type not recognized")
-            sys.exit()
-        try:
-            file = open("DFTB+/dftb_in.hsd", "r+")
-        except OSError:
-            print ("Could not open detailed.out file")
-            sys.exit()
-
+            if vdw == None:
+                shutil.copyfile('DFTB+/optimize-periodic.hsd', 'DFTB+/dftb_in.hsd')
+            elif vdw == "MBD":
+                shutil.copyfile('DFTB+/optimize-periodic_mbd.hsd', 'DFTB+/dftb_in.hsd')
+            elif vdw == "PW":
+                shutil.copyfile('DFTB+/optimize-periodic_pw.hsd', 'DFTB+/dftb_in.hsd')
+            else:
+                print ("Dispersion type not recognized")
+                sys.exit()
+            try:
+                file = open("DFTB+/dftb_in.hsd", "r+")
+            except OSError:
+                print ("Could not open detailed.out file")
+                sys.exit()
         lines = file.readlines()
         file.close()
 

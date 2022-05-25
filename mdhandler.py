@@ -22,11 +22,11 @@ class Handler():
 
     def RunMD(self,steps,temp=400,vdw=None,keepstationary=False,static=None,save_steps=1):
         if vdw == None:
-            shutil.copyfile('DFTB+/md.hsd', 'DFTB+/dftb_in.hsd')
+            shutil.copyfile('DFTB+/in_files/md.hsd', 'DFTB+/dftb_in.hsd')
         elif vdw == "MBD":
-            shutil.copyfile('DFTB+/md_mbd.hsd', 'DFTB+/dftb_in.hsd')
+            shutil.copyfile('DFTB+/in_files/md_mbd.hsd', 'DFTB+/dftb_in.hsd')
         elif vdw == "PW":
-            shutil.copyfile('DFTB+/md_pw.hsd', 'DFTB+/dftb_in.hsd')
+            shutil.copyfile('DFTB+/in_files/md_pw.hsd', 'DFTB+/dftb_in.hsd')
         else:
             print ("Dispersion type not recognized")
             sys.exit()

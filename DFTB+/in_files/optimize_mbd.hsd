@@ -5,7 +5,7 @@ Geometry = GenFormat {
 Driver = ConjugateGradient {
   MovedAtoms = 1:-1
   MaxForceComponent = 1E-6
-  MaxSteps = 3000
+  MaxSteps = 30000
   OutputPrefix = "geom.out"
 }
 
@@ -27,7 +27,10 @@ Hamiltonian = DFTB {
     Temperature[kelvin] = 200.0000000000000000
   }
   SCCTolerance = 1.0000000000000001E-006
-
+  Dispersion = MBD {
+    KGRID = 1 1 1
+    Beta = 0.83
+  }
 }
 
 Options {}

@@ -337,24 +337,26 @@ def bucklingtest(vdw=None):
     R0 = 2.4
 
     u = 0
-    du = 5.0/100.0
+    du = -5.0/100.0
 
     displ = []
-    displ.append("0.00")
-    for i in range(1,100):
-        u=i*du
+    # displ.append("0.00")
+    for i in range(0,100):
+        u=i*du-4.95
         ru = str(round(u,2))
-        if len(ru) == 3:
+        if len(ru) == 4:
             ru = ru + '0'
+        elif len(ru) == 3:
+            ru = ru + '00'
         displ.append(ru)
     print(displ)
 
     if vdw == None:
-        struct_name = "/buckling/novdw/geom_-0.00.gen"
+        struct_name = "/buckling/novdw/geom_-4.95.gen"
     elif vdw == "MBD":
-        struct_name = "/buckling/MBD/geom_MBD_-0.00.gen"
+        struct_name = "/buckling/MBD/geom_MBD_-4.95.gen"
     elif vdw == "PW":
-        struct_name = "/buckling/PW/geom_PW_-0.00.gen"
+        struct_name = "/buckling/PW/geom_PW_-4.95.gen"
 
     chain = structures.Sphere(Nat,R0)
     chain.LoadGeometry(struct_name)
@@ -382,6 +384,198 @@ def bucklingtest(vdw=None):
         else:
             chain.SaveGeometry("_"+vdw+"_"+displ[i],"buckling")
 
+def compressiontest(vdw=None):
+
+    Nat = 5
+    R0 = 2.4
+
+    u = 0
+    du = -5.0/100.0
+
+    displ = []
+    # displ.append("0.00")
+    for i in range(0,100):
+        u=i*du
+        ru = str(round(u,2))
+        if len(ru) == 4:
+            ru = ru + '0'
+        elif len(ru) == 3:
+            ru = ru + '00'
+        displ.append(ru)
+    print(displ)
+
+    if vdw == None:
+        struct_name = "/Nanotubes/geom_5-10.gen"
+    elif vdw == "MBD":
+        struct_name = "/Nanotubes/geom_5-10_MBD.gen"
+    elif vdw == "PW":
+        struct_name = "/Nanotubes/geom_5-10_PW.gen"
+
+    chain = structures.Sphere(Nat,R0)
+    chain.LoadGeometry(struct_name)
+    Nat = chain.Nat
+    chain.SaveGeometry()
+    chain.RunOptimize(vdw=vdw,static=[2,3,30,31,68,69,96,97,124,125,138,139,100,101,72,73,44,45,16,17],read_charges=False)
+    chain.LoadGeometry()
+    if vdw == None:
+        chain.SaveGeometry("_"+displ[0],"nanotube")
+    else:
+        chain.SaveGeometry("_"+vdw+"_"+displ[0],"nanotube")
+
+
+    for i in range(1,100):
+        chain.Displace(2,[0,du,0])
+        chain.Displace(3,[0,du,0])
+        chain.Displace(30,[0,du,0])
+        chain.Displace(31,[0,du,0])
+        chain.Displace(68,[0,du,0])
+        chain.Displace(69,[0,du,0])
+        chain.Displace(96,[0,du,0])
+        chain.Displace(97,[0,du,0])
+        chain.Displace(124,[0,du,0])
+        chain.Displace(125,[0,du,0])
+        chain.Displace(138,[0,-du,0])
+        chain.Displace(139,[0,-du,0])
+        chain.Displace(100,[0,-du,0])
+        chain.Displace(101,[0,-du,0])
+        chain.Displace(72,[0,-du,0])
+        chain.Displace(73,[0,-du,0])
+        chain.Displace(44,[0,-du,0])
+        chain.Displace(45,[0,-du,0])
+        chain.Displace(16,[0,-du,0])
+        chain.Displace(17,[0,-du,0])
+
+
+        chain.SaveGeometry()
+        chain.RunOptimize(vdw=vdw,static=[2,3,30,31,68,69,96,97,124,125,138,139,100,101,72,73,44,45,16,17],read_charges=True)
+        chain.LoadGeometry()
+        u = i*du
+        if vdw == None:
+            chain.SaveGeometry("_"+displ[i],"nanotube")
+        else:
+            chain.SaveGeometry("_"+vdw+"_"+displ[i],"nanotube")
+
+def compressiontest_big(vdw=None):
+
+    Nat = 5
+    R0 = 2.4
+
+    u = 0
+    du = -5.0/100.0
+
+    displ = []
+    # displ.append("0.00")
+    for i in range(0,100):
+        u=i*du
+        ru = str(round(u,2))
+        if len(ru) == 4:
+            ru = ru + '0'
+        elif len(ru) == 3:
+            ru = ru + '00'
+        displ.append(ru)
+    print(displ)
+
+    if vdw == None:
+        struct_name = "/Nanotubes/geom_25-50.gen"
+    elif vdw == "MBD":
+        struct_name = "/Nanotubes/geom_25-50_MBD.gen"
+    elif vdw == "PW":
+        struct_name = "/Nanotubes/geom_25-50_PW.gen"
+
+    chain = structures.Sphere(Nat,R0)
+    chain.LoadGeometry(struct_name)
+    Nat = chain.Nat
+    chain.SaveGeometry()
+    chain.RunOptimize(vdw=vdw,static=[605,604,457,456,309,308,161,160,13,12,86,87,234,235,382,383,530,531,678,679],read_charges=False)
+    chain.LoadGeometry()
+    if vdw == None:
+        chain.SaveGeometry("_"+displ[0],"nanotube")
+    else:
+        chain.SaveGeometry("_"+vdw+"_"+displ[0],"nanotube")
+
+
+    for i in range(1,100):
+        chain.Displace(605,[0,du,0])
+        chain.Displace(604,[0,du,0])
+        chain.Displace(457,[0,du,0])
+        chain.Displace(456,[0,du,0])
+        chain.Displace(309,[0,du,0])
+        chain.Displace(308,[0,du,0])
+        chain.Displace(161,[0,du,0])
+        chain.Displace(160,[0,du,0])
+        chain.Displace(13,[0,du,0])
+        chain.Displace(12,[0,du,0])
+        chain.Displace(86,[0,-du,0])
+        chain.Displace(87,[0,-du,0])
+        chain.Displace(234,[0,-du,0])
+        chain.Displace(235,[0,-du,0])
+        chain.Displace(382,[0,-du,0])
+        chain.Displace(383,[0,-du,0])
+        chain.Displace(530,[0,-du,0])
+        chain.Displace(531,[0,-du,0])
+        chain.Displace(678,[0,-du,0])
+        chain.Displace(679,[0,-du,0])
+
+
+        chain.SaveGeometry()
+        chain.RunOptimize(vdw=vdw,static=[605,604,457,456,309,308,161,160,13,12,86,87,234,235,382,383,530,531,678,679],read_charges=True)
+        chain.LoadGeometry()
+        u = i*du
+        if vdw == None:
+            chain.SaveGeometry("_"+displ[i],"nanotube")
+        else:
+            chain.SaveGeometry("_"+vdw+"_"+displ[i],"nanotube")
+
+def compressiontest_UHMWPE(vdw=None):
+
+    Nat = 5
+    R0 = 2.4
+
+    u = 0
+    du = 5.0/100.0
+
+    displ = []
+    # displ.append("0.00")
+    for i in range(0,100):
+        u=i*du
+        ru = str(round(u,2))
+        if len(ru) == 4:
+            ru = ru + '0'
+        elif len(ru) == 3:
+            ru = ru + '00'
+        displ.append(ru)
+    print(displ)
+
+    if vdw == None:
+        struct_name = "/UHMWPE/UHMWPE.gen"
+    elif vdw == "MBD":
+        struct_name = "/UHMWPE/UHMWPE_MBD.gen"
+    elif vdw == "PW":
+        struct_name = "/UHMWPE/UHMWPE_PW.gen"
+
+    chain = structures.Sphere(Nat,R0)
+    chain.LoadGeometry(struct_name)
+    Nat = chain.Nat
+    chain.SaveGeometry()
+    chain.RunOptimize(vdw=vdw,static=None,read_charges=False)
+    chain.LoadGeometry("geo_end.gen")
+    if vdw == None:
+        chain.SaveGeometry("_"+displ[0],"UHMWPE")
+    else:
+        chain.SaveGeometry("_"+vdw+"_"+displ[0],"UHMWPE")
+
+
+    for i in range(1,100):
+        chain.Displace_UC([0,du,0])
+        chain.SaveGeometry()
+        chain.RunOptimize(vdw=vdw,static=None,read_charges=True)
+        chain.LoadGeometry("geo_end.gen")
+        u = i*du
+        if vdw == None:
+            chain.SaveGeometry("_"+displ[i],"UHMWPE")
+        else:
+            chain.SaveGeometry("_"+vdw+"_"+displ[i],"UHMWPE")
+
 def buckling_stats():
 
     Nat = 400
@@ -391,13 +585,14 @@ def buckling_stats():
     du = 0.05
     u=0
     displ = []
-    displ.append('0.00')
-    for i in range(1,100):
-        u=i*du
+    # displ.append('0.00')
+    for i in range(0,34):
+        u=i*du+4.95
         ru = str(round(u,2))
         if len(ru) == 3:
             ru = ru + '0'
         displ.append(ru)
+    print(displ)
 
     Fz_PW = np.zeros(len(displ))
     for i in range(len(displ)):
@@ -419,40 +614,260 @@ def buckling_stats():
 
 
 
+    # Fz_MBD = np.zeros(len(displ))
+    # for i in range(len(displ)):
+    #     name = "/buckling/MBD/geom_MBD_-"+displ[i]+".gen"
+    #     print(name)
+    #     chain = structures.Sphere(Nat,R0)
+    #     chain.LoadGeometry(name)
+    #     chain.SaveGeometry()
+
+    #     chain.RunStatic("MBD")
+    #     F = chain.GetForces()
+    #     for j in range(chain.Nat-16,chain.Nat):
+    #         Fz_MBD[i] = Fz_MBD[i] + F[j][2]
+    #     print(Fz_MBD)
+
+    # with open('out/Buckling_MBD.txt', 'w') as f:
+    #     for i in range(len(Fz_MBD)):
+    #         f.write(displ[i]+' '+str(Fz_MBD[i])+'\n')
+
+
+
+    # Fz = np.zeros(len(displ))
+    # for i in range(len(displ)):
+    #     name = "/buckling/novdw/geom_-"+displ[i]+".gen"
+    #     print(name)
+    #     chain = structures.Sphere(Nat,R0)
+    #     chain.LoadGeometry(name)
+    #     chain.SaveGeometry()
+
+    #     chain.RunStatic()
+    #     F = chain.GetForces()
+    #     for j in range(chain.Nat-16,chain.Nat):
+    #         Fz[i] = Fz[i] + F[j][2]
+    #     print(Fz)
+
+    # with open('out/Buckling.txt', 'w') as f:
+    #     for i in range(len(Fz)):
+    #         f.write(displ[i]+' '+str(Fz[i])+'\n')
+
+def UHWPE():
+
+    Nat = 40
+    R0 = 2.4
+    chain = structures.Chain(Nat,R0)
+    chain.LoadGeometry("UHWPE.gen")
+    chain.SaveGeometry()
+
+    E = []
+    u_start = 9/10
+    u_end = 11/10
+    du=(u_end-u_start)/100
+    for i in range(100):
+        for j in range(chain.Nat):
+            chain.y[j]=chain.y[j]*u_start
+        chain.unit_cell[2][1]=chain.unit_cell[2][1]*u_start
+        
+        chain.SaveGeometry()
+        chain.RunStatic()
+        E.append(chain.GetEnergy())
+        u_start = u_start + du
+        chain.LoadGeometry("UHWPE.gen")
+        print(E)
+
+    u_start = 9/10
+    u_end = 11/10
+    du=(u_end-u_start)/100
+    with open('out/UHWPE_E_y.txt', 'w') as f:
+        for i in range(len(E)):
+            f.write(str(u_start)+' '+str(E[i])+'\n')
+            u_start = u_start + du
+
+    Nat = 40
+    R0 = 2.4
+    chain = structures.Chain(Nat,R0)
+    chain.LoadGeometry("UHWPE_MBD.gen")
+    chain.SaveGeometry()
+
+    E = []
+    u_start = 9/10
+    u_end = 11/10
+    du=(u_end-u_start)/100
+    for i in range(100):
+        for j in range(chain.Nat):
+            chain.y[j]=chain.y[j]*u_start
+        chain.unit_cell[2][1]=chain.unit_cell[2][1]*u_start
+        
+        chain.SaveGeometry()
+        chain.RunStatic("MBD")
+        E.append(chain.GetEnergy())
+        u_start = u_start + du
+        chain.LoadGeometry("UHWPE_MBD.gen")
+        print(E)
+
+    u_start = 9/10
+    u_end = 11/10
+    du=(u_end-u_start)/100
+    with open('out/UHWPE_E_MBD_y.txt', 'w') as f:
+        for i in range(len(E)):
+            f.write(str(u_start)+' '+str(E[i])+'\n')
+            u_start = u_start + du
+
+    Nat = 40
+    R0 = 2.4
+    chain = structures.Chain(Nat,R0)
+    chain.LoadGeometry("UHWPE_PW.gen")
+    chain.SaveGeometry()
+
+    E = []
+    u_start = 9/10
+    u_end = 11/10
+    du=(u_end-u_start)/100
+    for i in range(100):
+        for j in range(chain.Nat):
+            chain.y[j]=chain.y[j]*u_start
+        chain.unit_cell[2][1]=chain.unit_cell[2][1]*u_start
+        
+        chain.SaveGeometry()
+        chain.RunStatic("PW")
+        E.append(chain.GetEnergy())
+        u_start = u_start + du
+        chain.LoadGeometry("UHWPE_PW.gen")
+        print(E)
+
+    u_start = 9/10
+    u_end = 11/10
+    du=(u_end-u_start)/100
+    with open('out/UHWPE_E_PW_y.txt', 'w') as f:
+        for i in range(len(E)):
+            f.write(str(u_start)+' '+str(E[i])+'\n')
+            u_start = u_start + du
+
+def UHMWPE_comp_stats():
+
+    Nat = 40
+    R0 = 2.4
+    chain = structures.Sphere(Nat,R0)
+
+    u = 0
+    du = 5.0/100.0
+
+    displ = []
+    # displ.append("0.00")
+    for i in range(0,100):
+        u=i*du
+        ru = str(round(u,2))
+        if len(ru) == 4:
+            ru = ru + '0'
+        elif len(ru) == 3:
+            ru = ru + '00'
+        displ.append(ru)
+    print(displ)
+
+    E = []
+
+    for i in range(100):
+        
+        chain.LoadGeometry("/UHMWPE/compression/UHMWPE-nowdv/geom_"+displ[i]+".gen")
+        chain.SaveGeometry()
+        chain.RunStatic()
+        E.append(chain.GetEnergy())
+        print(E)
+
+    with open('out/UHWPE_E_y.txt', 'w') as f:
+        for i in range(len(E)):
+            f.write(displ[i]+' '+str(E[i])+'\n')
+
+    E = []
+
+    for i in range(100):
+        
+        chain.LoadGeometry("/UHMWPE/compression/UHMWPE-PW/geom_PW_"+displ[i]+".gen")
+        chain.SaveGeometry()
+        chain.RunStatic("PW")
+        E.append(chain.GetEnergy())
+        print(E)
+
+    with open('out/UHWPE_E_y-PW.txt', 'w') as f:
+        for i in range(len(E)):
+            f.write(displ[i]+' '+str(E[i])+'\n')
+
+    E = []
+
+    for i in range(100):
+        
+        chain.LoadGeometry("/UHMWPE/compression/UHMWPE-MBD/geom_MBD_"+displ[i]+".gen")
+        chain.SaveGeometry()
+        chain.RunStatic("MBD")
+        E.append(chain.GetEnergy())
+        print(E)
+
+    with open('out/UHWPE_E_y-MBD.txt', 'w') as f:
+        for i in range(len(E)):
+            f.write(displ[i]+' '+str(E[i])+'\n')
+
+def nanotube_comp_stats():
+
+    Nat = 40
+    R0 = 2.4
+    chain = structures.Sphere(Nat,R0)
+
+    u = 0
+    du = -5.0/100.0
+
+    displ = []
+    # displ.append("0.00")
+    for i in range(0,100):
+        u=i*du
+        ru = str(round(u,2))
+        if len(ru) == 4:
+            ru = ru + '0'
+        elif len(ru) == 3:
+            ru = ru + '00'
+        displ.append(ru)
+    print(displ)
+
+    indexes = [2,3,30,31,68,69,96,97,124,125]
+
+    Fz_PW = np.zeros(len(displ))
+    for i in range(len(displ)):
+        chain.LoadGeometry("/Nanotubes/compression_5-10/geom_PW_"+displ[i]+".gen")
+        chain.SaveGeometry()
+        chain.RunStatic("PW")
+        F = chain.GetForces()
+        for j in indexes:
+            Fz_PW[i] = Fz_PW[i] + F[j][1]
+        print(Fz_PW)
+
+    with open('out/Nanotuve_comp_PW.txt', 'w') as f:
+        for i in range(len(Fz_PW)):
+            f.write(displ[i]+' '+str(Fz_PW[i])+'\n')
+
     Fz_MBD = np.zeros(len(displ))
     for i in range(len(displ)):
-        name = "/buckling/MBD/geom_MBD_-"+displ[i]+".gen"
-        print(name)
-        chain = structures.Sphere(Nat,R0)
-        chain.LoadGeometry(name)
+        chain.LoadGeometry("/Nanotubes/compression_5-10/geom_MBD_"+displ[i]+".gen")
         chain.SaveGeometry()
-
         chain.RunStatic("MBD")
         F = chain.GetForces()
-        for j in range(chain.Nat-16,chain.Nat):
-            Fz_MBD[i] = Fz_MBD[i] + F[j][2]
+        for j in indexes:
+            Fz_MBD[i] = Fz_MBD[i] + F[j][1]
         print(Fz_MBD)
 
-    with open('out/Buckling_MBD.txt', 'w') as f:
+    with open('out/Nanotuve_comp_MBD.txt', 'w') as f:
         for i in range(len(Fz_MBD)):
             f.write(displ[i]+' '+str(Fz_MBD[i])+'\n')
 
-
-
     Fz = np.zeros(len(displ))
     for i in range(len(displ)):
-        name = "/buckling/novdw/geom_-"+displ[i]+".gen"
-        print(name)
-        chain = structures.Sphere(Nat,R0)
-        chain.LoadGeometry(name)
+        chain.LoadGeometry("/Nanotubes/compression_5-10/geom_"+displ[i]+".gen")
         chain.SaveGeometry()
-
         chain.RunStatic()
         F = chain.GetForces()
-        for j in range(chain.Nat-16,chain.Nat):
-            Fz[i] = Fz[i] + F[j][2]
+        for j in indexes:
+            Fz[i] = Fz[i] + F[j][1]
         print(Fz)
 
-    with open('out/Buckling.txt', 'w') as f:
+    with open('out/Nanotuve_comp_MBD.txt', 'w') as f:
         for i in range(len(Fz)):
             f.write(displ[i]+' '+str(Fz[i])+'\n')

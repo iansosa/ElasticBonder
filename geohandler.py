@@ -1,4 +1,4 @@
-import numpy as np
+in_files/import numpy as np
 import matplotlib.pyplot as plot
 import math
 import sys
@@ -174,6 +174,7 @@ class Handler():
                 name = 'DFTB+/'+path+'/geom'+decour+'.gen'
                 if not os.path.exists('DFTB+/'+path):
                     os.makedirs('DFTB+/'+path)
+
             with open(name, 'w') as f:
                 f.write(str(self.Nat)+' C\n')
                 f.write('  C\n')
@@ -196,7 +197,7 @@ class Handler():
                 for i in range(len(self.unit_cell)):
                     f.write('  '+str(angstrom*self.unit_cell[i][0])+' '+str(angstrom*self.unit_cell[i][1])+' '+str(angstrom*self.unit_cell[i][2])+'\n')
 
-    def LoadGeometry(self,path="geom.out.xyz"): #loads the geometry from a gen, xyz or sdf file in angstroms and converts it into Bohr
+    def LoadGeometry(self,path="geom.out.gen"): #loads the geometry from a gen, xyz or sdf file in angstroms and converts it into Bohr
         print("Loading geometry..")
         angstrom = 0.529177249
         extension = path[-3:]
@@ -212,7 +213,7 @@ class Handler():
                 
         if extension == "gen":
             recognized = True
-            if path != "geom.out.gen":
+            if path != "geom.out.gen" and path != "geo_end.gen":
                 self.Nat, geometry, self.periodic, self.types, self.unit_cell = filetypes.Loadgen("SavedStructures/"+path,angstrom)
                 print(str(self.Nat)+" atoms loaded")
             else:
@@ -220,7 +221,7 @@ class Handler():
 
         if extension == "xyz":
             recognized = True
-            self.Nat, geometry = filetypes.Loadxyz_single("DFTB+/"+path,angstrom)
+            self.Nat, geometry = filetypes.Loadxyz_single("SavedStructures/"+path,angstrom)
 
         if extension == "cc1":
             recognized = True
@@ -254,11 +255,11 @@ class Handler():
     def RunOptimize(self,vdw=None,static=None,read_charges=False):
         if self.periodic == False:
             if vdw == None:
-                shutil.copyfile('DFTB+/optimize.hsd', 'DFTB+/dftb_in.hsd')
+                shutil.copyfile('DFTB+/in_files/optimize.hsd', 'DFTB+/dftb_in.hsd')
             elif vdw == "MBD":
-                shutil.copyfile('DFTB+/optimize_mbd.hsd', 'DFTB+/dftb_in.hsd')
+                shutil.copyfile('DFTB+/in_files/optimize_mbd.hsd', 'DFTB+/dftb_in.hsd')
             elif vdw == "PW":
-                shutil.copyfile('DFTB+/optimize_pw.hsd', 'DFTB+/dftb_in.hsd')
+                shutil.copyfile('DFTB+/in_files/optimize_pw.hsd', 'DFTB+/dftb_in.hsd')
             else:
                 print ("Dispersion type not recognized")
                 sys.exit()
@@ -269,11 +270,11 @@ class Handler():
                 sys.exit()
         else:
             if vdw == None:
-                shutil.copyfile('DFTB+/optimize-periodic.hsd', 'DFTB+/dftb_in.hsd')
+                shutil.copyfile('DFTB+/in_files/optimize-periodic.hsd', 'DFTB+/dftb_in.hsd')
             elif vdw == "MBD":
-                shutil.copyfile('DFTB+/optimize-periodic_mbd.hsd', 'DFTB+/dftb_in.hsd')
+                shutil.copyfile('DFTB+/in_files/optimize-periodic_mbd.hsd', 'DFTB+/dftb_in.hsd')
             elif vdw == "PW":
-                shutil.copyfile('DFTB+/optimize-periodic_pw.hsd', 'DFTB+/dftb_in.hsd')
+                shutil.copyfile('DFTB+/in_files/optimize-periodic_pw.hsd', 'DFTB+/dftb_in.hsd')
             else:
                 print ("Dispersion type not recognized")
                 sys.exit()
@@ -311,24 +312,35 @@ class Handler():
         subprocess.run("./dftbOpt.sh", shell=True)
 
     def RunStatic(self,vdw=None):
-        if vdw == None:
-            shutil.copyfile('DFTB+/static_calc.hsd', 'DFTB+/dftb_in.hsd')
-        elif vdw == "MBD":
-            shutil.copyfile('DFTB+/static_calc_mbd.hsd', 'DFTB+/dftb_in.hsd')
-        elif vdw == "PW":
-            shutil.copyfile('DFTB+/static_calc_pw.hsd', 'DFTB+/dftb_in.hsd')
+        if self.periodic == False:
+            if vdw == None:
+                shutil.copyfile('DFTB+/in_files/static_calc.hsd', 'DFTB+/dftb_in.hsd')
+            elif vdw == "MBD":
+                shutil.copyfile('DFTB+/in_files/static_calc_mbd.hsd', 'DFTB+/dftb_in.hsd')
+            elif vdw == "PW":
+                shutil.copyfile('DFTB+/in_files/static_calc_pw.hsd', 'DFTB+/dftb_in.hsd')
+            else:
+                print ("Dispersion type not recognized")
+                sys.exit()
         else:
-            print ("Dispersion type not recognized")
-            sys.exit()
+            if vdw == None:
+                shutil.copyfile('DFTB+/in_files/static_calc-periodic.hsd', 'DFTB+/dftb_in.hsd')
+            elif vdw == "MBD":
+                shutil.copyfile('DFTB+/in_files/static_calc-periodic_mbd.hsd', 'DFTB+/dftb_in.hsd')
+            elif vdw == "PW":
+                shutil.copyfile('DFTB+/in_files/static_calc-periodic_pw.hsd', 'DFTB+/dftb_in.hsd')
+            else:
+                print ("Dispersion type not recognized")
+                sys.exit()
         subprocess.run("./dftbOpt.sh", shell=True)
 
     def RunHessian(self,vdw=None):
         if vdw == None:
-            shutil.copyfile('DFTB+/Hessian_calc.hsd', 'DFTB+/dftb_in.hsd')
+            shutil.copyfile('DFTB+/in_files/Hessian_calc.hsd', 'DFTB+/dftb_in.hsd')
         elif vdw == "MBD":
-            shutil.copyfile('DFTB+/Hessian_calc_mbd.hsd', 'DFTB+/dftb_in.hsd')
+            shutil.copyfile('DFTB+/in_files/Hessian_calc_mbd.hsd', 'DFTB+/dftb_in.hsd')
         elif vdw == "PW":
-            shutil.copyfile('DFTB+/Hessian_calc_pw.hsd', 'DFTB+/dftb_in.hsd')
+            shutil.copyfile('DFTB+/in_files/Hessian_calc_pw.hsd', 'DFTB+/dftb_in.hsd')
         else:
             print ("Dispersion type not recognized")
             sys.exit()
@@ -338,6 +350,14 @@ class Handler():
         self.x[i]=self.x[i]+dv[0]
         self.y[i]=self.y[i]+dv[1]
         self.z[i]=self.z[i]+dv[2]
+
+    def Displace_UC(self,dv): #displaces atom i a dv vector distance (Bohr)
+        if self.periodic == False:
+            print ("System not periodic")
+            sys.exit()
+        self.unit_cell[1][0] = self.unit_cell[1][0] + dv[0]
+        self.unit_cell[2][1] = self.unit_cell[2][1] + dv[1]
+        self.unit_cell[3][2] = self.unit_cell[3][2] + dv[2]
 
     def GetVersor(self,i,j): #returns versor that points from i to j
         versor = [self.x[j]-self.x[i],self.y[j]-self.y[i],self.z[j]-self.z[i]]

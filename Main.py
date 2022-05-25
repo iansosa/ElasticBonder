@@ -6,73 +6,54 @@ import numpy as np
 import vdw
 import numpy.linalg as LA
 
-
-Nat = 400
-R0 = 2.4
-
-
-du = 0.05
-u=0
-displ = []
-displ.append('0.00')
-for i in range(1,100):
-	u=i*du
-	ru = str(round(u,2))
-	if len(ru) == 3:
-		ru = ru + '0'
-	displ.append(ru)
-
-Fz_PW = np.zeros(len(displ))
-for i in range(len(displ)):
-	name = "/buckling/PW/geom_PW_-"+displ[i]+".gen"
-	print(name)
-	chain = structures.Sphere(Nat,R0)
-	chain.LoadGeometry(name)
-	chain.SaveGeometry()
-
-	chain.RunStatic("PW")
-	E = chain.GetEnergy()
-	Fz_PW[i] = E
-	print(Fz_PW)
-
-with open('out/Buckling_PW_E.txt', 'w') as f:
-    for i in range(len(Fz_PW)):
-        f.write(displ[i]+' '+str(Fz_PW[i])+'\n')
+imp.buckling_stats()
 
 
 
-Fz_MBD = np.zeros(len(displ))
-for i in range(len(displ)):
-	name = "/buckling/MBD/geom_MBD_-"+displ[i]+".gen"
-	print(name)
-	chain = structures.Sphere(Nat,R0)
-	chain.LoadGeometry(name)
-	chain.SaveGeometry()
 
-	chain.RunStatic("MBD")
-	E = chain.GetEnergy()
-	Fz_MBD[i] = E
-	print(Fz_MBD)
+# Nat = 100
+# R0 = 2.4
+# chain = structures.Chain(Nat,R0)
+# chain.SaveGeometry()
+# chain.RunOptimize("PW")
+# chain.LoadGeometry()
 
-with open('out/Buckling_MBD_E.txt', 'w') as f:
-    for i in range(len(Fz_MBD)):
-        f.write(displ[i]+' '+str(Fz_MBD[i])+'\n')
+# chain2 = structures.Chain(Nat,R0)
+# chain2.SaveGeometry()
+# chain2.RunOptimize("PW")
+# chain2.LoadGeometry()
 
+# chain2.MoveAll([0,0,37.7945197720])
 
+# chain.add(chain2)
+# chain.SaveGeometry()
+# chain.ShowStruct()
+# chain.RunOptimize("PW",[0,99,100,199])
+# chain.LoadGeometry()
+# chain.SaveGeometry("chain_PW")
 
-Fz = np.zeros(len(displ))
-for i in range(len(displ)):
-	name = "/buckling/novdw/geom_-"+displ[i]+".gen"
-	print(name)
-	chain = structures.Sphere(Nat,R0)
-	chain.LoadGeometry(name)
-	chain.SaveGeometry()
+# imp.UHMWPE_comp_stats()
 
-	chain.RunStatic()
-	E = chain.GetEnergy()
-	Fz[i] = E
-	print(Fz)
+#########################################################################################
 
-with open('out/Buckling_E.txt', 'w') as f:
-    for i in range(len(Fz)):
-        f.write(displ[i]+' '+str(Fz[i])+'\n')
+# Nat = 100
+# R0 = 2.4
+# chain = structures.Sphere(Nat,R0)
+
+# chain.LoadGeometry("UHMWPE/UHMWPE_MBD.gen")
+# chain.SaveGeometry()
+# chain.RunOptimize("MBD")
+# chain.LoadGeometry("geo_end.gen")
+# chain.SaveGeometry("_UHMWPE_MBD")
+
+# chain.LoadGeometry("UHMWPE/UHMWPE.gen")
+# chain.SaveGeometry()
+# chain.RunOptimize()
+# chain.LoadGeometry("geo_end.gen")
+# chain.SaveGeometry("_UHMWPE_novdw")
+
+# chain.LoadGeometry("UHMWPE/UHMWPE_PW.gen")
+# chain.SaveGeometry()
+# chain.RunOptimize("PW")
+# chain.LoadGeometry("geo_end.gen")
+# chain.SaveGeometry("_UHMWPE_PW")

@@ -154,7 +154,6 @@ def Loadxyz_single(path,conversion):
         a = list(filter(lambda x: x != '', a))
         a = list(map(float, a[1:-1]))
         geometry.append(a)
-
     arr_t = np.array(geometry).T/conversion
     geometry = arr_t.tolist()
 
